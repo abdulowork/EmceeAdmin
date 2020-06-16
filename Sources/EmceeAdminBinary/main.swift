@@ -1,1 +1,4 @@
-import Foundation
+import EmceeAdminLib
+
+let app = EmceeAdminApp()
+app.run()
