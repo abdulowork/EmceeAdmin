@@ -3,12 +3,19 @@ import AppKit
 public final class StatusBarController {
     public let item: NSStatusItem
     
-    public static func createItem(length: CGFloat) -> NSStatusItem {
-        NSStatusBar.system.statusItem(withLength: length)
-    }
-    
-    public convenience init(itemLength: CGFloat) {
-        self.init(item: StatusBarController.createItem(length: itemLength))
+    public static func with(
+        menuItems: [NSMenuItem],
+        title: String = "",
+        image: NSImage? = nil
+    ) -> StatusBarController {
+        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem.button?.title = title
+        statusItem.button?.image = image
+        statusItem.menu = NSMenu(title: title)
+        menuItems.forEach {
+            statusItem.menu?.addItem($0)
+        }
+        return StatusBarController(item: statusItem)
     }
 
     public init(item: NSStatusItem) {
