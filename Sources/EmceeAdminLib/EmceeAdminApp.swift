@@ -5,7 +5,15 @@ import RequestSender
 import RemotePortDeterminer
 
 public final class EmceeAdminApp {
-    public init() {}
+    public init() {
+        GlobalLoggerConfig.loggerHandler = FileHandleLoggerHandler(
+            fileHandle: .standardOutput,
+            verbosity: .always,
+            logEntryTextFormatter: NSLogLikeLogEntryTextFormatter(),
+            supportsAnsiColors: false,
+            fileHandleShouldBeClosed: false
+        )
+    }
     
     public func run() {
         let delegate = AppDelegate()
@@ -13,20 +21,3 @@ public final class EmceeAdminApp {
         applicationLauncher.run()
     }
 }
-//
-//GlobalLoggerConfig.loggerHandler = FileHandleLoggerHandler(
-//    fileHandle: .standardOutput,
-//    verbosity: .always,
-//    logEntryTextFormatter: NSLogLikeLogEntryTextFormatter(),
-//    supportsAnsiColors: false,
-//    fileHandleShouldBeClosed: false
-//)
-//
-//let scanner = RemoteQueuePortScanner(
-//    host: "ios-build-machine72.msk.avito.ru",
-//    portRange: 41000...41010,
-//    requestSenderProvider: DefaultRequestSenderProvider()
-//)
-//
-//let result = scanner.queryPortAndQueueServerVersion(timeout: 10)
-//Logger.always("result = \(result)")

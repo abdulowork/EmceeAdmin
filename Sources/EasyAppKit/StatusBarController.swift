@@ -1,24 +1,61 @@
 import AppKit
 
-public final class StatusBarController {
-    public let item: NSStatusItem
+public final class StatusBarController: NSObject, NSMenuDelegate {
+    private var item: NSStatusItem?
     
-    public static func with(
-        menuItems: [NSMenuItem],
+    public var title: String {
+        didSet { updateItem() }
+    }
+    public var image: NSImage? {
+        didSet { updateItem() }
+    }
+    public var willOpenMenu: () -> () = {}
+    public var didCloseMenu: () -> () = {}
+    public var menuItems: () -> [NSMenuItem] = {[]} {
+        didSet { updateMenuItems() }
+    }
+    
+    public init(
         title: String = "",
         image: NSImage? = nil
-    ) -> StatusBarController {
-        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = title
-        statusItem.button?.image = image
-        statusItem.menu = NSMenu(title: title)
-        menuItems.forEach {
-            statusItem.menu?.addItem($0)
-        }
-        return StatusBarController(item: statusItem)
+    ) {
+        self.title = title
+        self.image = image
     }
-
-    public init(item: NSStatusItem) {
-        self.item = item
+    
+    public func showStatusBarItem() {
+        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        updateItem()
+    }
+    
+    public func hideStatusBarItem() {
+        item = nil
+    }
+    
+    public func updateMenuItems() {
+        item?.menu?.items = menuItems()
+    }
+    
+    private func updateItem() {
+        guard let item = item else { return }
+        item.button?.title = title
+        item.button?.image = image
+        
+        let menu = NSMenu(title: title)
+        menu.autoenablesItems = false
+        menu.delegate = self
+        item.menu = menu
+    }
+    
+    public func menuWillOpen(_ menu: NSMenu) {
+        willOpenMenu()
+    }
+    
+    public func menuDidClose(_ menu: NSMenu) {
+        didCloseMenu()
+    }
+    
+    public func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.items = menuItems()
     }
 }
