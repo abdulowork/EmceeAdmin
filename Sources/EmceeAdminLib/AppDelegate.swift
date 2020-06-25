@@ -3,7 +3,14 @@ import EasyAppKit
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var emceeQueueServerStatusBarController = EmceeQueueServerStatusBarController(
-        hosts: UserDefaults(suiteName: "ru.avito.emceeadmin")?.stringArray(forKey: "hosts") ?? []
+        hostsProvider: {
+            UserDefaults(suiteName: "ru.avito.emceeadmin")?.stringArray(forKey: "hosts") ?? []
+        },
+        remotePortDeterminerProvider: FakeRemotePortDeterminerProvider(
+            result: [
+                41000: "abc2123",
+            ]
+        )
     )
     
     public func applicationDidFinishLaunching(_ notification: Notification) {

@@ -9,10 +9,15 @@ public final class EmceeQueueServerStatusBarController {
     lazy var statusBarController = StatusBarController(
         title: "Emcee Admin"
     )
-    private let hosts: [String]
+    private let hostsProvider: () -> [String]
+    private let remotePortDeterminerProvider: RemotePortDeterminerProvider
     
-    public init(hosts: [String]) {
-        self.hosts = hosts
+    public init(
+        hostsProvider: @escaping () -> [String],
+        remotePortDeterminerProvider: RemotePortDeterminerProvider
+    ) {
+        self.hostsProvider = hostsProvider
+        self.remotePortDeterminerProvider = remotePortDeterminerProvider
     }
     
     public func startUpdating() {
@@ -38,21 +43,8 @@ public final class EmceeQueueServerStatusBarController {
 
         return items + [
             NSMenuItem.separator(),
-            NSMenuItem.with(title: "Quit", key: "q", enabled: true, action: #selector(NSApplication.terminate(_:))),
+            NSMenuItem.with(title: "Quit", key: "q", enabled: true, action: { NSApp.terminate(nil) }),
         ]
-    }
-    
-    private struct RunningQueue: Comparable {
-        static func < (lhs: EmceeQueueServerStatusBarController.RunningQueue, rhs: EmceeQueueServerStatusBarController.RunningQueue) -> Bool {
-            if lhs.host == rhs.host {
-                return lhs.port < rhs.port
-            }
-            return lhs.host < rhs.host
-        }
-        
-        let host: String
-        let port: Int
-        let version: Version
     }
     
     private var isSearching = false
@@ -64,16 +56,16 @@ public final class EmceeQueueServerStatusBarController {
 
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 5
-        for host in hosts {
+        for host in hostsProvider() {
             queue.addOperation { [weak self] in
-                let scanner = RemoteQueuePortScanner(
-                    host: host,
-                    portRange: 41000...41005,
-                    requestSenderProvider: DefaultRequestSenderProvider()
+                guard let self = self else { return }
+                
+                let remotePortDeterminer = self.remotePortDeterminerProvider.remotePortDeterminer(
+                    host: host
                 )
                 
-                let result = scanner.queryPortAndQueueServerVersion(timeout: 10)
-                self?.didFindQueues(on: host, ports: result)
+                let result = remotePortDeterminer.queryPortAndQueueServerVersion(timeout: 10)
+                self.didFindQueues(on: host, ports: result)
                 
                 foundQueues.withExclusiveAccess {
                     $0.append(
@@ -92,7 +84,7 @@ public final class EmceeQueueServerStatusBarController {
         }
     }
     
-    private func didFindQueues(on host: String, ports: [Int: Version]) {
+    private func didFindQueues(on host: String, ports: [Models.Port: Version]) {
         if !ports.isEmpty {
             runningQueues.withExclusiveAccess {
                 for port in ports {
