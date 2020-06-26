@@ -11,13 +11,16 @@ public final class EmceeQueueServerStatusBarController {
     )
     private let hostsProvider: () -> [String]
     private let remotePortDeterminerProvider: RemotePortDeterminerProvider
+    private let windowControllerHolder: WindowControllerHolder
     
     public init(
         hostsProvider: @escaping () -> [String],
-        remotePortDeterminerProvider: RemotePortDeterminerProvider
+        remotePortDeterminerProvider: RemotePortDeterminerProvider,
+        windowControllerHolder: WindowControllerHolder
     ) {
         self.hostsProvider = hostsProvider
         self.remotePortDeterminerProvider = remotePortDeterminerProvider
+        self.windowControllerHolder = windowControllerHolder
     }
     
     public func startUpdating() {
@@ -37,8 +40,10 @@ public final class EmceeQueueServerStatusBarController {
             NSMenuItem.separator(),
         ]
 
-        items += runningQueues.currentValue().sorted().map {
-            NSMenuItem.with(title: "\($0.host):\($0.port) \($0.version)")
+        items += runningQueues.currentValue().sorted().map { runningQueue in
+            NSMenuItem.with(title: "\(runningQueue.host):\(runningQueue.port) \(runningQueue.version)", enabled: true) { [weak self] in
+                self?.showQueueInfo(runningQueue: runningQueue)
+            }
         }
 
         return items + [
@@ -102,5 +107,11 @@ public final class EmceeQueueServerStatusBarController {
         DispatchQueue.main.async {
             self.statusBarController.updateMenuItems()
         }
+    }
+    
+    private func showQueueInfo(runningQueue: RunningQueue) {
+        let windowController = QueueInfoWindowController.create()
+        windowControllerHolder.hold(windowController: windowController, key: "queue")
+        windowController.showWindow(nil)
     }
 }

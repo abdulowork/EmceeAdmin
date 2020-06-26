@@ -10,8 +10,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             result: [
                 41000: "abc2123",
             ]
-        )
+        ),
+        windowControllerHolder: windowControllerHolder
     )
+    
+    lazy var windowControllerHolder = WindowControllerHolder()
     
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
