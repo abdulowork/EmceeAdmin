@@ -1,6 +1,7 @@
 import Dispatch
 import Foundation
 import Models
+import WorkerAlivenessModels
 
 public final class FakeQueueMetricsProvider: QueueMetricsProvider {
     public func staticQueueMetrics(
@@ -27,6 +28,24 @@ public final class FakeQueueMetricsProvider: QueueMetricsProvider {
         callbackQueue: DispatchQueue,
         completion: @escaping (Result<MomentumQueueMetrics, Error>) -> ()
     ) {
+        let numberOfWorkersToReport = 50
         
+        var workerAlivenesses = [WorkerId: WorkerAliveness]()
+        for workerIndex in 0 ..< numberOfWorkersToReport {
+            workerAlivenesses[WorkerId(value: "emcee-worker-machine\(workerIndex).example.com")] = WorkerAliveness(registered: Bool.random(), bucketIdsBeingProcessed: [], disabled: Bool.random(), silent: Bool.random())
+        }
+        
+        callbackQueue.async {
+            completion(
+                .success(
+                    MomentumQueueMetrics(
+                        enqueuedTests: 0,
+                        currentlyProcessingTests: 0,
+                        enqueuedBuckets: 0,
+                        workerAlivenesses: workerAlivenesses
+                    )
+                )
+            )
+        }
     }
 }

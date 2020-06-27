@@ -17,6 +17,7 @@ public final class QueueInfoViewController: NSViewController {
     
     private let runningQueue: RunningQueue
     private let queueMetricsProvider: QueueMetricsProvider
+    private let queueWorkerDetailsTableController = QueueWorkerDetailsTableController()
     
     public init(
         runningQueue: RunningQueue,
@@ -52,6 +53,8 @@ public final class QueueInfoViewController: NSViewController {
             maker.top.left.bottom.right.equalToSuperview()
         }
         
+        queueWorkerDetailsTableController.prepare(tableView: tableContainer.tableView)
+        
         fetchValues()
     }
     
@@ -71,6 +74,13 @@ public final class QueueInfoViewController: NSViewController {
             if let staticMetrics = try? result.get() {
                 self.queueStartTimestampLabel.ext_setText(staticMetrics.startedAt.description)
                 self.queueLogsPathLabel.ext_setText(staticMetrics.hostLogsPath)
+            }
+        }
+        
+        queueMetricsProvider.momentumQueueMetrics(queueSocketAddress: runningQueue.socketAddress, callbackQueue: DispatchQueue.main) { result in
+            if let momentumMetrics = try? result.get() {
+                self.queueWorkerDetailsTableController.workerAlivenesses = momentumMetrics.workerAlivenesses
+                self.tableContainer.tableView.reloadData()
             }
         }
     }
