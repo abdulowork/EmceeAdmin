@@ -1,15 +1,14 @@
 import Foundation
 import Models
 
-struct RunningQueue: Comparable {
-    static func < (lhs: RunningQueue, rhs: RunningQueue) -> Bool {
-        if lhs.host == rhs.host {
-            return lhs.port < rhs.port
+public struct RunningQueue: Comparable {
+    public static func < (lhs: RunningQueue, rhs: RunningQueue) -> Bool {
+        if lhs.socketAddress.host == rhs.socketAddress.host {
+            return lhs.socketAddress.port < rhs.socketAddress.port
         }
-        return lhs.host < rhs.host
+        return lhs.socketAddress.host < rhs.socketAddress.host
     }
     
-    let host: String
-    let port: Models.Port
-    let version: Version
+    public let socketAddress: SocketAddress
+    public let version: Version
 }

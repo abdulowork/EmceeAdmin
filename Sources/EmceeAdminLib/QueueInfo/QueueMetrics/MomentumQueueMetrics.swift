@@ -2,18 +2,6 @@ import Foundation
 import Models
 import WorkerAlivenessModels
 
-public struct StaticQueueMetrics {
-    public let socketAddress: SocketAddress
-    public let version: Version
-    public let startedAt: Date
-    
-    public init(socketAddress: SocketAddress, version: Version, startedAt: Date) {
-        self.socketAddress = socketAddress
-        self.version = version
-        self.startedAt = startedAt
-    }
-}
-
 public struct MomentumQueueMetrics {
     public let enqueuedTests: Int
     public let currentlyProcessingTests: Int

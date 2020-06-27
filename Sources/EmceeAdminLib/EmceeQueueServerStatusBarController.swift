@@ -41,7 +41,7 @@ public final class EmceeQueueServerStatusBarController {
         ]
 
         items += runningQueues.currentValue().sorted().map { runningQueue in
-            NSMenuItem.with(title: "\(runningQueue.host):\(runningQueue.port) \(runningQueue.version)", enabled: true) { [weak self] in
+            NSMenuItem.with(title: "\(runningQueue.socketAddress.asString) \(runningQueue.version)", enabled: true) { [weak self] in
                 self?.showQueueInfo(runningQueue: runningQueue)
             }
         }
@@ -75,7 +75,7 @@ public final class EmceeQueueServerStatusBarController {
                 foundQueues.withExclusiveAccess {
                     $0.append(
                         contentsOf: result.map {
-                            RunningQueue(host: host, port: $0.key, version: $0.value)
+                            RunningQueue(socketAddress: SocketAddress(host: host, port: $0.key), version: $0.value)
                         }
                     )
                 }
@@ -92,8 +92,14 @@ public final class EmceeQueueServerStatusBarController {
     private func didFindQueues(on host: String, ports: [Models.Port: Version]) {
         if !ports.isEmpty {
             runningQueues.withExclusiveAccess {
-                for port in ports {
-                    let runningQueue = RunningQueue(host: host, port: port.key, version: port.value)
+                for (port, version) in ports {
+                    let runningQueue = RunningQueue(
+                        socketAddress: SocketAddress(
+                            host: host,
+                            port: port
+                        ),
+                        version: version
+                    )
                     if !$0.contains(runningQueue) {
                         $0.append(runningQueue)
                     }
@@ -110,7 +116,7 @@ public final class EmceeQueueServerStatusBarController {
     }
     
     private func showQueueInfo(runningQueue: RunningQueue) {
-        let windowController = QueueInfoWindowController.create()
+        let windowController = QueueInfoWindowController(runningQueue: runningQueue)
         windowControllerHolder.hold(windowController: windowController, key: "queue")
         windowController.showWindow(nil)
     }

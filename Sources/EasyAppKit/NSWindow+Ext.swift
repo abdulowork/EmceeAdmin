@@ -1,16 +1,14 @@
 import AppKit
 
-public protocol ContentViewControllerProviding {
-    static func createContentViewController() -> NSViewController
-}
-
-public extension ContentViewControllerProviding where Self: NSWindowController {
-    static func create(
+public extension NSWindow {
+    static func createWindow(
+        contentViewController: NSViewController,
+        windowFrame: NSRect = .zero,
         windowStyle: NSWindow.StyleMask = [.closable, .miniaturizable, .resizable, .titled]
-    ) -> Self {
+    ) -> NSWindow {
         let window = NSWindow(
             contentRect: NSWindow.contentRect(
-                forFrameRect: NSRect(x: 20, y: 20, width: 200, height: 200),
+                forFrameRect: windowFrame,
                 styleMask: windowStyle
             ),
             styleMask: windowStyle,
@@ -18,13 +16,9 @@ public extension ContentViewControllerProviding where Self: NSWindowController {
             defer: true
         )
         
-        let contentViewController = Self.createContentViewController()
-        
         window.contentViewController = contentViewController
         window.bind(.title, to: contentViewController, withKeyPath: "title", options: nil)
         
-        return Self(
-            window: window
-        )
+        return window
     }
 }
