@@ -6,6 +6,8 @@ public extension NSTableView {
         columns: Int = 1
     ) -> (scrollView: NSScrollView, tableView: NSTableView) {
         let scrollView = NSScrollView(frame: .zero)
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
         
         let tableView = NSTableView(frame: .zero)
         for columnIndex in 0 ..< columns {
