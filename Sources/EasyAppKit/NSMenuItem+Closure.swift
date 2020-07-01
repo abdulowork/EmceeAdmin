@@ -17,13 +17,15 @@ public extension NSMenuItem {
         image: NSImage? = nil,
         key: String = "",
         enabled: Bool = false,
-        action: @escaping () -> () = {}
+        action: @escaping () -> () = {},
+        submenu: NSMenu? = nil
     ) -> NSMenuItem {
         let item = NSMenuItem()
         item.title = title
         item.image = image
         item.keyEquivalent = key
         item.isEnabled = enabled
+        item.submenu = submenu
         
         let internalHandler = InternalMenuItemAction(handler: action)
         item.target = internalHandler
@@ -40,5 +42,11 @@ public extension NSMenu {
         menu.items = items
         menu.delegate = delegate
         return menu
+    }
+    
+    func add(items: [NSMenuItem]) {
+        for item in items {
+            addItem(item)
+        }
     }
 }

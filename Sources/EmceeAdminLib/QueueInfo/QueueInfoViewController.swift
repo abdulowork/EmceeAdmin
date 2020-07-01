@@ -4,7 +4,7 @@ import Models
 import SnapKit
 
 public final class QueueInfoViewController: NSViewController {
-    private lazy var stackView = NSStackView(views: [gridView, tableContainer.scrollView])
+    private lazy var stackView = NSStackView(views: [tableContainer.scrollView])
     
     // Grig View Shit
     private lazy var gridView = NSGridView(views: createGridViewContents())
@@ -43,6 +43,8 @@ public final class QueueInfoViewController: NSViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.title = "Queue " + runningQueue.socketAddress.asString + " Version: " + runningQueue.version.value
         
         gridView.columnSpacing = 10
         gridView.rowSpacing = 10

@@ -4,7 +4,7 @@ import Logging
 import RequestSender
 import RemotePortDeterminer
 
-public final class EmceeAdminApp {
+public final class EmceeAdminApp: MainMenuProvider {
     public init() {
         GlobalLoggerConfig.loggerHandler = FileHandleLoggerHandler(
             fileHandle: .standardOutput,
@@ -17,7 +17,19 @@ public final class EmceeAdminApp {
     
     public func run() {
         let delegate = AppDelegate()
-        let applicationLauncher = ApplicationLauncher(delegate: delegate)
+        let applicationLauncher = ApplicationLauncher(delegate: delegate, mainMenuProvider: self)
         applicationLauncher.run()
+    }
+    
+    public func populate(applicationSubmenu: NSMenu) {
+        applicationSubmenu.add(
+            items: [
+                .with(title: "Quit", key: "q", enabled: true, action: { NSApp.terminate(nil) })
+            ]
+        )
+    }
+    
+    public func additionalSubmenus() -> [NSMenuItem] {
+        []
     }
 }
