@@ -39,7 +39,7 @@ public final class StatusIndicatorCellView: NSView {
             make.width.equalTo(indicatorSize)
             make.height.equalTo(indicatorSize)
             
-            make.leading.equalTo(self)
+            make.leading.equalTo(self).offset(indicatorToLabelOffset)
             make.centerY.equalTo(self)
         }
         

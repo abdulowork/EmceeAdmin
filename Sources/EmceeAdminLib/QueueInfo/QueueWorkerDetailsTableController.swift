@@ -21,6 +21,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         tableView.addTableColumn(TableColumnIds.isEnabled.createTableColumn())
         
         tableView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
+        tableView.usesAlternatingRowBackgroundColors = true
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -44,7 +45,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         
         switch tableColumn.identifier {
         case TableColumnIds.workerId.identifier:
-            return NSTextField.create(text: workerInfo.workerId.value)
+            return WorkerNameCellView(text: workerInfo.workerId.value)
             
         case TableColumnIds.isRegistered.identifier:
             return StatusIndicatorCellView(
@@ -67,6 +68,10 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         default:
             fatalError("Unknown table column \(tableColumn.identifier)")
         }
+    }
+    
+    public func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+        40
     }
     
     private let blueColor = NSColor(calibratedRed: 0.105, green: 0.678, blue: 0.972, alpha: 1)
@@ -114,6 +119,7 @@ private enum TableColumnIds: String {
     func createTableColumn() -> NSTableColumn {
         let c = NSTableColumn.create(identifier: identifier, title: title)
         c.width = width
+        c.minWidth = width
         return c
     }
 }
