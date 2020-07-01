@@ -122,12 +122,23 @@ public final class EmceeQueueServerStatusBarController {
     }
     
     private func showQueueInfo(runningQueue: RunningQueue) {
+        let alreadyExistingWindowControllers: [QueueInfoWindowController] = windowControllerHolder.typedWindowControllers().filter {
+            $0.runningQueue == runningQueue
+        }
+        if let alreadyExistingWindowController = alreadyExistingWindowControllers.first {
+            return alreadyExistingWindowController.showWindow(nil)
+        }
+        
         let windowController = QueueInfoWindowController(
             runningQueue: runningQueue,
             queueMetricsProvider: queueMetricsProvider,
             workerStatusSetter: workerStatusSetter
         )
-        windowControllerHolder.hold(windowController: windowController, key: "queue")
+        let key = windowControllerHolder.hold(windowController: windowController)
         windowController.showWindow(nil)
+        windowController.window?.center()
+        windowController.onWindowClose = { [windowControllerHolder] in
+            windowControllerHolder.release(windowControllerUnderKey: key)
+        }
     }
 }
