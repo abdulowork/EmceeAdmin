@@ -63,8 +63,6 @@ public final class QueueInfoViewController: NSViewController {
             [NSGridCell.emptyContentView],
             [NSTextField.create(text: "Queue Address:", alignment: .right), queueAddressLabel],
             [NSTextField.create(text: "Version:", alignment: .right), queueVersionLabel],
-            [NSTextField.create(text: "Started At:", alignment: .right), queueStartTimestampLabel],
-            [NSTextField.create(text: "Logs Path:", alignment: .right), queueLogsPathLabel, NSButton.create(title: "Copy", bezelStyle: .inline, target: self, action: #selector(copyPathToLog))],
             [NSGridCell.emptyContentView],
         ]
     }
