@@ -5,10 +5,13 @@ import Models
 public final class QueueInfoWindowController: NSWindowController {
     private let queueInfoViewController: QueueInfoViewController
     
-    public init(runningQueue: RunningQueue) {
+    public init(
+        queueMetricsProvider: QueueMetricsProvider,
+        runningQueue: RunningQueue
+    ) {
         self.queueInfoViewController = QueueInfoViewController(
             runningQueue: runningQueue,
-            queueMetricsProvider: FakeQueueMetricsProvider()
+            queueMetricsProvider: queueMetricsProvider
         )
         
         super.init(

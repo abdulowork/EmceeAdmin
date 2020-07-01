@@ -10,15 +10,18 @@ public final class EmceeQueueServerStatusBarController {
         title: "Emcee Admin"
     )
     private let hostsProvider: () -> [String]
+    private let queueMetricsProvider: QueueMetricsProvider
     private let remotePortDeterminerProvider: RemotePortDeterminerProvider
     private let windowControllerHolder: WindowControllerHolder
     
     public init(
         hostsProvider: @escaping () -> [String],
+        queueMetricsProvider: QueueMetricsProvider,
         remotePortDeterminerProvider: RemotePortDeterminerProvider,
         windowControllerHolder: WindowControllerHolder
     ) {
         self.hostsProvider = hostsProvider
+        self.queueMetricsProvider = queueMetricsProvider
         self.remotePortDeterminerProvider = remotePortDeterminerProvider
         self.windowControllerHolder = windowControllerHolder
     }
@@ -116,7 +119,10 @@ public final class EmceeQueueServerStatusBarController {
     }
     
     private func showQueueInfo(runningQueue: RunningQueue) {
-        let windowController = QueueInfoWindowController(runningQueue: runningQueue)
+        let windowController = QueueInfoWindowController(
+            queueMetricsProvider: queueMetricsProvider,
+            runningQueue: runningQueue
+        )
         windowControllerHolder.hold(windowController: windowController, key: "queue")
         windowController.showWindow(nil)
     }

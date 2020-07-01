@@ -39,9 +39,6 @@ public final class FakeQueueMetricsProvider: QueueMetricsProvider {
             completion(
                 .success(
                     MomentumQueueMetrics(
-                        enqueuedTests: 0,
-                        currentlyProcessingTests: 0,
-                        enqueuedBuckets: 0,
                         workerAlivenesses: workerAlivenesses
                     )
                 )

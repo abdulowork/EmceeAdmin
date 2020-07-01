@@ -6,6 +6,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hostsProvider: {
             UserDefaults(suiteName: "ru.avito.emceeadmin")?.stringArray(forKey: "hosts") ?? []
         },
+        queueMetricsProvider: FakeQueueMetricsProvider(),
         remotePortDeterminerProvider: FakeRemotePortDeterminerProvider(
             result: [
                 41000: "abc2123",
