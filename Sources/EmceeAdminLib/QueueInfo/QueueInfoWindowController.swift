@@ -6,12 +6,14 @@ public final class QueueInfoWindowController: NSWindowController {
     private let queueInfoViewController: QueueInfoViewController
     
     public init(
+        runningQueue: RunningQueue,
         queueMetricsProvider: QueueMetricsProvider,
-        runningQueue: RunningQueue
+        workerStatusSetter: WorkerStatusSetter
     ) {
         self.queueInfoViewController = QueueInfoViewController(
+            queueMetricsProvider: queueMetricsProvider,
             runningQueue: runningQueue,
-            queueMetricsProvider: queueMetricsProvider
+            workerStatusSetter: workerStatusSetter
         )
         
         super.init(

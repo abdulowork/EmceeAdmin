@@ -3,7 +3,7 @@ import EasyAppKit
 import RequestSender
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {
-    lazy var emceeQueueServerStatusBarController = productionDataBasedEmceeQueueServerStatusBarController()
+    lazy var emceeQueueServerStatusBarController = fakeDataBasedEmceeQueueServerStatusBarController()
     
     lazy var windowControllerHolder = WindowControllerHolder()
     
@@ -24,22 +24,28 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             remotePortDeterminerProvider: DefaultRemotePortDeterminerProvider(
                 requestSenderProvider: requestSenderProvider
             ),
-            windowControllerHolder: windowControllerHolder
+            windowControllerHolder: windowControllerHolder,
+            workerStatusSetter: DefaultWorkerStatusSetter(
+                requestSenderProvider: requestSenderProvider
+            )
         )
     }
     
     private func fakeDataBasedEmceeQueueServerStatusBarController() -> EmceeQueueServerStatusBarController {
-        EmceeQueueServerStatusBarController(
+        let metricsProvider = FakeQueueMetricsProvider()
+        
+        return EmceeQueueServerStatusBarController(
             hostsProvider: {
                 ["example.com"]
             },
-            queueMetricsProvider: FakeQueueMetricsProvider(),
+            queueMetricsProvider: metricsProvider,
             remotePortDeterminerProvider: FakeRemotePortDeterminerProvider(
                 result: [
                     41000: "abc2123",
                 ]
             ),
-            windowControllerHolder: windowControllerHolder
+            windowControllerHolder: windowControllerHolder,
+            workerStatusSetter: metricsProvider
         )
     }
 }

@@ -3,8 +3,13 @@ import EasyAppKit
 import Models
 import WorkerAlivenessModels
 
-public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataSource, NSTableViewDelegate {
+public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {
     public var workerAlivenesses: [WorkerId: WorkerAliveness] = [:]
+    
+    public var onEnableWorkerId: (WorkerId) -> () = { _ in }
+    public var onDisableWorkerId: (WorkerId) -> () = { _ in }
+    
+    private weak var tableView: NSTableView?
     
     public override init() {
         
@@ -25,6 +30,10 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+        self.tableView = tableView
+        
+        tableView.menu = NSMenu.create(delegate: self)
     }
     
     private var alivenesses: [(workerId: WorkerId, aliveness: WorkerAliveness)] {
@@ -78,6 +87,29 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     private let greenColor = NSColor(calibratedRed: 0.196, green: 0.843, blue: 0.294, alpha: 1)
     private let yellowColor = NSColor(calibratedRed: 1.0, green: 0.839, blue: 0, alpha: 1)
     private let brownColor = NSColor(calibratedRed: 0.675, green: 0.557, blue: 0.290, alpha: 1)
+    
+    // MARK: NSMenuDelegate
+    
+    public func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        
+        guard let clickedRow = tableView?.clickedRow, clickedRow >= 0 else {
+            menu.cancelTrackingWithoutAnimation()
+            return
+        }
+        
+        let workerInfo = alivenesses[clickedRow]
+        
+        if workerInfo.aliveness.enabled {
+            menu.addItem(
+                .with(title: "Disable \(workerInfo.workerId.value)") { [weak self] in self?.onDisableWorkerId(workerInfo.workerId) }
+            )
+        } else {
+            menu.addItem(
+                .with(title: "Enable \(workerInfo.workerId.value)") { [weak self] in self?.onEnableWorkerId(workerInfo.workerId) }
+            )
+        }
+    }
 }
 
 private enum TableColumnIds: String {

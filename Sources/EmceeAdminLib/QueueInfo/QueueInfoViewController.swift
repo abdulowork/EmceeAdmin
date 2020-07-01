@@ -15,16 +15,19 @@ public final class QueueInfoViewController: NSViewController {
     
     private lazy var tableContainer = NSTableView.createTableContainer()
     
-    private let runningQueue: RunningQueue
     private let queueMetricsProvider: QueueMetricsProvider
     private let queueWorkerDetailsTableController = QueueWorkerDetailsTableController()
+    private let runningQueue: RunningQueue
+    private let workerStatusSetter: WorkerStatusSetter
     
     public init(
+        queueMetricsProvider: QueueMetricsProvider,
         runningQueue: RunningQueue,
-        queueMetricsProvider: QueueMetricsProvider
+        workerStatusSetter: WorkerStatusSetter
     ) {
-        self.runningQueue = runningQueue
         self.queueMetricsProvider = queueMetricsProvider
+        self.runningQueue = runningQueue
+        self.workerStatusSetter = workerStatusSetter
         
         super.init(nibName: nil, bundle: nil)
     }
@@ -54,6 +57,18 @@ public final class QueueInfoViewController: NSViewController {
         }
         
         queueWorkerDetailsTableController.prepare(tableView: tableContainer.tableView)
+        queueWorkerDetailsTableController.onEnableWorkerId = { [weak self] workerId in
+            guard let self = self else { return }
+            self.workerStatusSetter.enable(queueServerAddress: self.runningQueue.socketAddress, workerId: workerId, callbackQueue: DispatchQueue.main) { error in
+                self.fetchValues()
+            }
+        }
+        queueWorkerDetailsTableController.onDisableWorkerId = { [weak self] workerId in
+            guard let self = self else { return }
+            self.workerStatusSetter.disable(queueServerAddress: self.runningQueue.socketAddress, workerId: workerId, callbackQueue: DispatchQueue.main) { error in
+                self.fetchValues()
+            }
+        }
         
         fetchValues()
     }

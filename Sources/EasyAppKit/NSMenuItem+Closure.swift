@@ -33,3 +33,12 @@ public extension NSMenuItem {
         return item
     }
 }
+
+public extension NSMenu {
+    static func create(title: String = "", items: [NSMenuItem] = [], delegate: NSMenuDelegate? = nil) -> NSMenu {
+        let menu = NSMenu(title: title)
+        menu.items = items
+        menu.delegate = delegate
+        return menu
+    }
+}
