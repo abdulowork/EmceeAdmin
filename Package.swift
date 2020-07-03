@@ -14,7 +14,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/avito-tech/Emcee.git", .branch("EmceeCommunications")),
+        .package(url: "https://github.com/avito-tech/Emcee.git", .branch("master")),
         .package(url: "https://github.com/SnapKit/SnapKit", .exact("5.0.1")),
     ],
     targets: [

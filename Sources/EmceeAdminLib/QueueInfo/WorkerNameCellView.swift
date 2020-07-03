@@ -23,8 +23,8 @@ public final class WorkerNameCellView: NSView {
     
     public override func updateConstraints() {
         labelView.snp.updateConstraints { make in
-            make.leading.equalTo(self)
-            make.trailing.equalTo(self)
+            make.leading.equalTo(self).offset(5)
+            make.trailing.equalTo(self).offset(-5)
             make.centerY.equalTo(self)
         }
         

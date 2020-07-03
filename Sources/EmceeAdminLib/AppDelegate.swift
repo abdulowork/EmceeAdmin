@@ -3,7 +3,7 @@ import EasyAppKit
 import RequestSender
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {
-    lazy var emceeQueueServerStatusBarController = fakeDataBasedEmceeQueueServerStatusBarController()
+    lazy var emceeQueueServerStatusBarController = productionDataBasedEmceeQueueServerStatusBarController()
     
     lazy var windowControllerHolder = WindowControllerHolder()
     
