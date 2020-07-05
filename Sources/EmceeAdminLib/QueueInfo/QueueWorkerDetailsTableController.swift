@@ -33,6 +33,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.rowHeight = 40
         
         self.tableView = tableView
         
@@ -81,10 +82,6 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         default:
             fatalError("Unknown table column \(tableColumn.identifier)")
         }
-    }
-    
-    public func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-        40
     }
     
     public func tableView(_ tableView: NSTableView, didClick tableColumn: NSTableColumn) {
