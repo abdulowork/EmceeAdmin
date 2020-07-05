@@ -24,7 +24,9 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
             tableView.removeTableColumn(column)
         }
         
-        configureColumns(tableView: tableView)
+        for columnId in TableColumnIds.allCases {
+            tableView.addTableColumn(columnId.createTableColumn())
+        }
         
         tableView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
         tableView.usesAlternatingRowBackgroundColors = true
@@ -39,7 +41,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         updateTableViewSorting()
     }
     
-    private var alivenesses: [(workerId: WorkerId, aliveness: WorkerAliveness)] = []
+    private var alivenesses: [ComplexWorkerAliveness] = []
     
     public func numberOfRows(in tableView: NSTableView) -> Int {
         workerAlivenesses.count
@@ -53,23 +55,27 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         switch tableColumn.identifier {
         case TableColumnIds.workerId.identifier:
             return WorkerNameCellView(text: workerInfo.workerId.value)
-            
-        case TableColumnIds.isRegistered.identifier:
-            return StatusIndicatorCellView(
-                color: workerInfo.aliveness.registered ? greenColor : blueColor,
-                text: workerInfo.aliveness.registered ? "Registered" : "Not Registered"
-            )
-            
-        case TableColumnIds.isAlive.identifier:
-            return StatusIndicatorCellView(
-                color: workerInfo.aliveness.alive ? greenColor : yellowColor,
-                text: workerInfo.aliveness.alive ? "Alive" : "Silent"
-            )
+
+        case TableColumnIds.status.identifier:
+            let text: String
+            let color: NSColor
+            switch workerInfo.workerStatus {
+            case .notStarted:
+                text = "Not Started"
+                color = redColor
+            case .startedSilent:
+                text = "Silent"
+                color = yellowColor
+            case .startedAlive:
+                text = "Alive"
+                color = greenColor
+            }
+            return StatusIndicatorCellView(color: color, text: text)
             
         case TableColumnIds.isEnabled.identifier:
             return StatusIndicatorCellView(
-                color: workerInfo.aliveness.enabled ? greenColor : brownColor,
-                text: workerInfo.aliveness.enabled ? "Enabled" : "Disabled"
+                color: workerInfo.enabled ? greenColor : brownColor,
+                text: workerInfo.enabled ? "Enabled" : "Disabled"
             )
             
         default:
@@ -86,21 +92,10 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     }
     
     private let blueColor = NSColor(calibratedRed: 0.105, green: 0.678, blue: 0.972, alpha: 1)
-    private let greenColor = NSColor(calibratedRed: 0.196, green: 0.843, blue: 0.294, alpha: 1)
-    private let yellowColor = NSColor(calibratedRed: 1.0, green: 0.839, blue: 0, alpha: 1)
     private let brownColor = NSColor(calibratedRed: 0.675, green: 0.557, blue: 0.290, alpha: 1)
-    
-    private func configureColumns(tableView: NSTableView) {
-        let workerIdColumn = TableColumnIds.workerId.createTableColumn()
-        let isRegisteredColumn = TableColumnIds.isRegistered.createTableColumn()
-        let isAliveColumn = TableColumnIds.isAlive.createTableColumn()
-        let isEnabledColumn = TableColumnIds.isEnabled.createTableColumn()
-        
-        tableView.addTableColumn(workerIdColumn)
-        tableView.addTableColumn(isRegisteredColumn)
-        tableView.addTableColumn(isAliveColumn)
-        tableView.addTableColumn(isEnabledColumn)
-    }
+    private let greenColor = NSColor(calibratedRed: 0.196, green: 0.843, blue: 0.294, alpha: 1)
+    private let redColor = NSColor(calibratedRed: 1.000, green: 0.164, blue: 0.408, alpha: 1)
+    private let yellowColor = NSColor(calibratedRed: 1.0, green: 0.839, blue: 0, alpha: 1)
     
     private var sortingColumnId: TableColumnIds = .workerId {
         didSet {
@@ -109,7 +104,15 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     }
     
     private func updateTableViewSorting() {
-        alivenesses = sortingColumnId.sort(items: workerAlivenesses.map { (workerId: $0.key, aliveness: $0.value) })
+        alivenesses = sortingColumnId.sort(
+            items: workerAlivenesses.map {
+                ComplexWorkerAliveness(
+                    workerId: $0.key,
+                    workerStatus: $0.value.workerStatus,
+                    enabled: $0.value.enabled
+                )
+            }
+        )
         
         guard let tableView = tableView else { return }
         
@@ -137,7 +140,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         
         let workerInfo = alivenesses[clickedRow]
         
-        if workerInfo.aliveness.enabled {
+        if workerInfo.enabled {
             menu.addItem(
                 .with(title: "Disable \(workerInfo.workerId.value)") { [weak self] in self?.onDisableWorkerId(workerInfo.workerId) }
             )
@@ -149,26 +152,35 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     }
 }
 
+private struct ComplexWorkerAliveness {
+    enum WorkerStatus: Int {
+        case notStarted
+        case startedSilent
+        case startedAlive
+    }
+    
+    let workerId: WorkerId
+    let workerStatus: WorkerStatus
+    let enabled: Bool
+}
+
 private enum TableColumnIds: String, CaseIterable {
     case workerId
-    case isRegistered
-    case isAlive
+    case status
     case isEnabled
     
     var identifier: NSUserInterfaceItemIdentifier {
         NSUserInterfaceItemIdentifier(rawValue: rawValue)
     }
     
-    func sort(items: [(workerId: WorkerId, aliveness: WorkerAliveness)]) -> [(workerId: WorkerId, aliveness: WorkerAliveness)] {
+    func sort(items: [ComplexWorkerAliveness]) -> [ComplexWorkerAliveness] {
         switch self {
         case .workerId:
             return items.sorted { (left, right) -> Bool in left.workerId < right.workerId }
-        case .isRegistered:
-            return items.sorted { (left, right) -> Bool in left.aliveness.registered.traditionalIntValue < right.aliveness.registered.traditionalIntValue }
-        case .isAlive:
-            return items.sorted { (left, right) -> Bool in left.aliveness.alive.traditionalIntValue < right.aliveness.alive.traditionalIntValue }
+        case .status:
+            return items.sorted { (left, right) -> Bool in left.workerStatus.rawValue < right.workerStatus.rawValue }
         case .isEnabled:
-            return items.sorted { (left, right) -> Bool in left.aliveness.enabled.traditionalIntValue < right.aliveness.enabled.traditionalIntValue }
+            return items.sorted { (left, right) -> Bool in left.enabled.traditionalIntValue < right.enabled.traditionalIntValue }
         }
     }
     
@@ -176,10 +188,8 @@ private enum TableColumnIds: String, CaseIterable {
         switch self {
         case .workerId:
             return "Worker Id"
-        case .isRegistered:
-            return "Registered"
-        case .isAlive:
-            return "Alive"
+        case .status:
+            return "Status"
         case .isEnabled:
             return "Enabled"
         }
@@ -188,13 +198,11 @@ private enum TableColumnIds: String, CaseIterable {
     var width: CGFloat {
         switch self {
         case .workerId:
-            return 100
-        case .isRegistered:
             return 125
-        case .isAlive:
-            return 80
+        case .status:
+            return 125
         case .isEnabled:
-            return 125
+            return 100
         }
     }
     
@@ -209,5 +217,19 @@ private enum TableColumnIds: String, CaseIterable {
 private extension Bool {
     var traditionalIntValue: Int {
         if self { return 1 } else { return 0 }
+    }
+}
+
+private extension WorkerAliveness {
+    var workerStatus: ComplexWorkerAliveness.WorkerStatus {
+        if !registered {
+            return .notStarted
+        }
+        
+        if alive {
+            return .startedAlive
+        } else {
+            return .startedSilent
+        }
     }
 }
