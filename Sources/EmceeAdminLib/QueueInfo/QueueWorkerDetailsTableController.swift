@@ -4,7 +4,11 @@ import Models
 import WorkerAlivenessModels
 
 public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {
-    public var workerAlivenesses: [WorkerId: WorkerAliveness] = [:]
+    public var workerAlivenesses: [WorkerId: WorkerAliveness] = [:] {
+        didSet {
+            alivenesses = sortingColumnId.sort(items: workerAlivenesses.map { (workerId: $0.key, aliveness: $0.value) })
+        }
+    }
     
     public var onEnableWorkerId: (WorkerId) -> () = { _ in }
     public var onDisableWorkerId: (WorkerId) -> () = { _ in }
@@ -20,10 +24,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
             tableView.removeTableColumn(column)
         }
         
-        tableView.addTableColumn(TableColumnIds.workerId.createTableColumn())
-        tableView.addTableColumn(TableColumnIds.isRegistered.createTableColumn())
-        tableView.addTableColumn(TableColumnIds.isAlive.createTableColumn())
-        tableView.addTableColumn(TableColumnIds.isEnabled.createTableColumn())
+        configureColumns(tableView: tableView)
         
         tableView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
         tableView.usesAlternatingRowBackgroundColors = true
@@ -36,12 +37,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         tableView.menu = NSMenu.create(delegate: self)
     }
     
-    private var alivenesses: [(workerId: WorkerId, aliveness: WorkerAliveness)] {
-        let alivenesses = workerAlivenesses.sorted {
-            $0.key.value < $1.key.value
-        }
-        return alivenesses.map { (workerId: $0.key, aliveness: $0.value) }
-    }
+    private var alivenesses: [(workerId: WorkerId, aliveness: WorkerAliveness)] = []
     
     public func numberOfRows(in tableView: NSTableView) -> Int {
         workerAlivenesses.count
@@ -83,10 +79,36 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         40
     }
     
+    public func tableView(_ tableView: NSTableView, didClick tableColumn: NSTableColumn) {
+        sortingColumnId = TableColumnIds(rawValue: tableColumn.identifier.rawValue)!
+        sortAlivenesses()
+        tableView.reloadData()
+    }
+    
     private let blueColor = NSColor(calibratedRed: 0.105, green: 0.678, blue: 0.972, alpha: 1)
     private let greenColor = NSColor(calibratedRed: 0.196, green: 0.843, blue: 0.294, alpha: 1)
     private let yellowColor = NSColor(calibratedRed: 1.0, green: 0.839, blue: 0, alpha: 1)
     private let brownColor = NSColor(calibratedRed: 0.675, green: 0.557, blue: 0.290, alpha: 1)
+    
+    private func configureColumns(tableView: NSTableView) {
+        let workerIdColumn = TableColumnIds.workerId.createTableColumn()
+        let isRegisteredColumn = TableColumnIds.isRegistered.createTableColumn()
+        let isAliveColumn = TableColumnIds.isAlive.createTableColumn()
+        let isEnabledColumn = TableColumnIds.isEnabled.createTableColumn()
+        
+        tableView.addTableColumn(workerIdColumn)
+        tableView.addTableColumn(isRegisteredColumn)
+        tableView.addTableColumn(isAliveColumn)
+        tableView.addTableColumn(isEnabledColumn)
+        
+        tableView.setIndicatorImage(NSImage(named: "NSAscendingSortIndicator"), in: workerIdColumn)
+    }
+    
+    private var sortingColumnId: TableColumnIds = .workerId
+    
+    private func sortAlivenesses() {
+        alivenesses = sortingColumnId.sort(items: workerAlivenesses.map { (workerId: $0.key, aliveness: $0.value) })
+    }
     
     // MARK: NSMenuDelegate
     
@@ -122,6 +144,19 @@ private enum TableColumnIds: String {
         NSUserInterfaceItemIdentifier(rawValue: rawValue)
     }
     
+    func sort(items: [(workerId: WorkerId, aliveness: WorkerAliveness)]) -> [(workerId: WorkerId, aliveness: WorkerAliveness)] {
+        switch self {
+        case .workerId:
+            return items.sorted { (left, right) -> Bool in left.workerId < right.workerId }
+        case .isRegistered:
+            return items.sorted { (left, right) -> Bool in left.aliveness.registered.traditionalIntValue < right.aliveness.registered.traditionalIntValue }
+        case .isAlive:
+            return items.sorted { (left, right) -> Bool in left.aliveness.alive.traditionalIntValue < right.aliveness.alive.traditionalIntValue }
+        case .isEnabled:
+            return items.sorted { (left, right) -> Bool in left.aliveness.enabled.traditionalIntValue < right.aliveness.enabled.traditionalIntValue }
+        }
+    }
+    
     var title: String {
         switch self {
         case .workerId:
@@ -153,5 +188,11 @@ private enum TableColumnIds: String {
         c.width = width
         c.minWidth = width
         return c
+    }
+}
+
+private extension Bool {
+    var traditionalIntValue: Int {
+        if self { return 1 } else { return 0 }
     }
 }
