@@ -15,7 +15,9 @@ public extension NSMenuItem {
     static func with(
         title: String,
         image: NSImage? = nil,
+        view: NSView? = nil,
         key: String = "",
+        keyEquivalentModifierMask: NSEvent.ModifierFlags = [.command],
         enabled: Bool = false,
         action: @escaping () -> () = {},
         submenu: NSMenu? = nil
@@ -24,8 +26,10 @@ public extension NSMenuItem {
         item.title = title
         item.image = image
         item.keyEquivalent = key
+        item.keyEquivalentModifierMask = keyEquivalentModifierMask
         item.isEnabled = enabled
         item.submenu = submenu
+        item.view = view
         
         let internalHandler = InternalMenuItemAction(handler: action)
         item.target = internalHandler

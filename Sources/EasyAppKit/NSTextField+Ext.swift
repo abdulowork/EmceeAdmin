@@ -3,10 +3,12 @@ import AppKit
 public extension NSTextField {
     static func create(
         text: String? = nil,
-        alignment: NSTextAlignment = .natural
+        alignment: NSTextAlignment = .natural,
+        font: NSFont = .labelFont(ofSize: NSFont.systemFontSize)
     ) -> NSTextField {
         let field = NSTextField(labelWithString: text ?? "")
         field.alignment = alignment
+        field.font = font
         return field
     }
     
