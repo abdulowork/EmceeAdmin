@@ -12,6 +12,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     
     public var onEnableWorkerId: (WorkerId) -> () = { _ in }
     public var onDisableWorkerId: (WorkerId) -> () = { _ in }
+    public var toggleEnableness: ((enable: [WorkerId], disable: [WorkerId])) -> () = { _ in }
     
     private weak var tableView: NSTableView?
     
@@ -34,6 +35,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = 40
+        tableView.allowsMultipleSelection = true
         
         self.tableView = tableView
         
@@ -130,21 +132,38 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     public func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         
+        guard let selectedRows = tableView?.selectedRowIndexes else {
+            menu.cancelTrackingWithoutAnimation()
+            return
+        }
+        
         guard let clickedRow = tableView?.clickedRow, clickedRow >= 0 else {
             menu.cancelTrackingWithoutAnimation()
             return
         }
         
-        let workerInfo = alivenesses[clickedRow]
-        
-        if workerInfo.enabled {
+        if selectedRows.contains(clickedRow) {
+            let workerInfos = selectedRows.map { alivenesses[$0] }
+            let workerIdsToEnable = workerInfos.filter { !$0.enabled }.map { $0.workerId }
+            let workerIdsToDisable = workerInfos.filter { $0.enabled }.map { $0.workerId }
+            
             menu.addItem(
-                .with(title: "Disable \(workerInfo.workerId.value)") { [weak self] in self?.onDisableWorkerId(workerInfo.workerId) }
+                .with(title: "Toggle enableness of \(workerInfos.map { $0.workerId.value }.joined(separator: ", "))", action: { [weak self] in
+                    self?.toggleEnableness((enable: workerIdsToEnable, disable: workerIdsToDisable))
+                })
             )
         } else {
-            menu.addItem(
-                .with(title: "Enable \(workerInfo.workerId.value)") { [weak self] in self?.onEnableWorkerId(workerInfo.workerId) }
-            )
+            let workerInfo = alivenesses[clickedRow]
+            
+            if workerInfo.enabled {
+                menu.addItem(
+                    .with(title: "Disable \(workerInfo.workerId.value)") { [weak self] in self?.onDisableWorkerId(workerInfo.workerId) }
+                )
+            } else {
+                menu.addItem(
+                    .with(title: "Enable \(workerInfo.workerId.value)") { [weak self] in self?.onEnableWorkerId(workerInfo.workerId) }
+                )
+            }
         }
     }
 }
