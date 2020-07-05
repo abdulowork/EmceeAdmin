@@ -2,6 +2,7 @@ import AppKit
 import EasyAppKit
 import Models
 import SnapKit
+import Timer
 
 public final class QueueInfoViewController: NSViewController {
     private lazy var stackView = NSStackView(views: [tableContainer.scrollView])
@@ -14,6 +15,8 @@ public final class QueueInfoViewController: NSViewController {
     private lazy var queueLogsPathLabel = NSTextField.create(text: "-")
     
     private lazy var tableContainer = NSTableView.createTableContainer()
+    
+    private let autoupdateTimer = DispatchBasedTimer(repeating: .seconds(20), leeway: .seconds(1))
     
     private let queueMetricsProvider: QueueMetricsProvider
     private let queueWorkerDetailsTableController = QueueWorkerDetailsTableController()
@@ -72,7 +75,10 @@ public final class QueueInfoViewController: NSViewController {
             }
         }
         
-        fetchValues()
+        autoupdateTimer.start { [weak self] timer in
+            guard let self = self else { return timer.stop() }
+            DispatchQueue.main.async { self.fetchValues() }
+        }
     }
     
     private func createGridViewContents() -> [[NSView]] {
@@ -92,7 +98,9 @@ public final class QueueInfoViewController: NSViewController {
             }
         }
         
+        tableContainer.tableView.isEnabled = false
         queueMetricsProvider.momentumQueueMetrics(queueSocketAddress: runningQueue.socketAddress, callbackQueue: DispatchQueue.main) { result in
+            self.tableContainer.tableView.isEnabled = true
             if let momentumMetrics = try? result.get() {
                 self.queueWorkerDetailsTableController.workerAlivenesses = momentumMetrics.workerAlivenesses
                 self.tableContainer.tableView.reloadData()
