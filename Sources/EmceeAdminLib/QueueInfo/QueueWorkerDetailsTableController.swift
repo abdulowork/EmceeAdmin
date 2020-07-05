@@ -6,7 +6,7 @@ import WorkerAlivenessModels
 public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {
     public var workerAlivenesses: [WorkerId: WorkerAliveness] = [:] {
         didSet {
-            alivenesses = sortingColumnId.sort(items: workerAlivenesses.map { (workerId: $0.key, aliveness: $0.value) })
+            updateTableViewSorting()
         }
     }
     
@@ -35,6 +35,8 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         self.tableView = tableView
         
         tableView.menu = NSMenu.create(delegate: self)
+        
+        updateTableViewSorting()
     }
     
     private var alivenesses: [(workerId: WorkerId, aliveness: WorkerAliveness)] = []
@@ -81,8 +83,6 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     
     public func tableView(_ tableView: NSTableView, didClick tableColumn: NSTableColumn) {
         sortingColumnId = TableColumnIds(rawValue: tableColumn.identifier.rawValue)!
-        sortAlivenesses()
-        tableView.reloadData()
     }
     
     private let blueColor = NSColor(calibratedRed: 0.105, green: 0.678, blue: 0.972, alpha: 1)
@@ -100,14 +100,29 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
         tableView.addTableColumn(isRegisteredColumn)
         tableView.addTableColumn(isAliveColumn)
         tableView.addTableColumn(isEnabledColumn)
-        
-        tableView.setIndicatorImage(NSImage(named: "NSAscendingSortIndicator"), in: workerIdColumn)
     }
     
-    private var sortingColumnId: TableColumnIds = .workerId
+    private var sortingColumnId: TableColumnIds = .workerId {
+        didSet {
+            updateTableViewSorting()
+        }
+    }
     
-    private func sortAlivenesses() {
+    private func updateTableViewSorting() {
         alivenesses = sortingColumnId.sort(items: workerAlivenesses.map { (workerId: $0.key, aliveness: $0.value) })
+        
+        guard let tableView = tableView else { return }
+        
+        for columnId in TableColumnIds.allCases.map({ $0.identifier }) {
+            let columnIndex = tableView.column(withIdentifier: columnId)
+            guard columnIndex >= 0 else { continue }
+            tableView.setIndicatorImage(
+                columnId == sortingColumnId.identifier ? NSImage(named: "NSAscendingSortIndicator") : nil,
+                in: tableView.tableColumns[columnIndex]
+            )
+        }
+        
+        tableView.reloadData()
     }
     
     // MARK: NSMenuDelegate
@@ -134,7 +149,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     }
 }
 
-private enum TableColumnIds: String {
+private enum TableColumnIds: String, CaseIterable {
     case workerId
     case isRegistered
     case isAlive
