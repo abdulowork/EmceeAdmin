@@ -175,9 +175,19 @@ private enum TableColumnIds: String, CaseIterable {
         case .workerId:
             return items.sorted { (left, right) -> Bool in left.workerId < right.workerId }
         case .status:
-            return items.sorted { (left, right) -> Bool in left.workerStatus.rawValue < right.workerStatus.rawValue }
+            return items.sorted { (left, right) -> Bool in
+                if left.workerStatus != right.workerStatus {
+                    return left.workerStatus.rawValue < right.workerStatus.rawValue
+                }
+                return left.workerId < right.workerId
+            }
         case .isEnabled:
-            return items.sorted { (left, right) -> Bool in left.enabled.traditionalIntValue < right.enabled.traditionalIntValue }
+            return items.sorted { (left, right) -> Bool in
+                if left.enabled != right.enabled {
+                    return left.enabled.traditionalIntValue < right.enabled.traditionalIntValue
+                }
+                return left.workerId < right.workerId
+            }
         }
     }
     
