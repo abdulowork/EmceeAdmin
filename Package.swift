@@ -19,7 +19,10 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "EasyAppKit"
+            name: "EasyAppKit",
+            dependencies: [
+                "SnapKit",
+            ]
         ),
         .target(
             name: "EmceeAdminLib",

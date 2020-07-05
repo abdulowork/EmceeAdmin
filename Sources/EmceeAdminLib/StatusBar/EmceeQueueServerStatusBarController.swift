@@ -47,7 +47,17 @@ public final class EmceeQueueServerStatusBarController {
         ]
 
         items += runningQueues.currentValue().sorted().map { runningQueue in
-            NSMenuItem.with(title: "\(runningQueue.socketAddress.asString) \(runningQueue.version)", enabled: true) { [weak self] in
+            NSMenuItem.with(
+                title: "",
+                view: EAKMenuView(
+                    actionable: true,
+                    contentView: QueueBriedInfoMenuView(
+                        queueServerAddress: runningQueue.socketAddress,
+                        version: runningQueue.version
+                    ),
+                    highlightable: true
+                )
+            ) { [weak self] in
                 self?.showQueueInfo(runningQueue: runningQueue)
             }
         }

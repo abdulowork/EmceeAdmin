@@ -1,4 +1,5 @@
 import AppKit
+import SnapKit
 
 open class EAKMenuView: NSView {
     private lazy var effectView: NSVisualEffectView = {
@@ -17,7 +18,7 @@ open class EAKMenuView: NSView {
         didSet {
             oldValue.removeFromSuperview()
             addSubview(contentView)
-            needsLayout = true
+            needsUpdateConstraints = true
         }
     }
     public var enabled: Bool = true {
@@ -26,24 +27,46 @@ open class EAKMenuView: NSView {
         }
     }
     public var highlightable: Bool
-    public var contentInsets: NSEdgeInsets = NSEdgeInsets(top: 0, left: 19, bottom: 3, right: 19)
+    public var contentInsets: NSEdgeInsets = NSEdgeInsets(top: 0, left: 19, bottom: 0, right: 10) {
+        didSet { needsUpdateConstraints = true }
+    }
     
     public init(actionable: Bool, contentView: NSView, highlightable: Bool) {
         self.actionable = actionable
         self.contentView = contentView
         self.highlightable = highlightable
         
-        super.init(
-            frame: NSRect(
-                x: 0,
-                y: 0,
-                width: contentView.bounds.width + contentInsets.left + contentInsets.right,
-                height: contentView.bounds.height + contentInsets.top + contentInsets.bottom
-            )
-        )
+        super.init(frame: .zero)
         
         addSubview(effectView)
         addSubview(contentView)
+    }
+    
+    open override var intrinsicContentSize: NSSize {
+        NSSize(
+            width: contentInsets.left + contentView.intrinsicContentSize.width + contentInsets.right,
+            height: contentInsets.top + contentView.intrinsicContentSize.height + contentInsets.bottom
+        )
+    }
+    
+    open override func updateConstraints() {
+        effectView.snp.updateConstraints { make in
+            make.top.left.bottom.right.equalToSuperview()
+        }
+        
+        contentView.snp.updateConstraints { make in
+            make.top.equalToSuperview().offset(contentInsets.top)
+            make.left.equalToSuperview().offset(contentInsets.left)
+            make.bottom.equalToSuperview().offset(-contentInsets.bottom)
+            make.right.equalToSuperview().offset(-contentInsets.right)
+        }
+        
+        snp.updateConstraints { make in
+            make.width.equalToSuperview()
+            make.height.equalTo(contentView.intrinsicContentSize.height)
+        }
+        
+        super.updateConstraints()
     }
     
     public override func viewDidMoveToWindow() {
@@ -62,30 +85,19 @@ open class EAKMenuView: NSView {
     
     open func didDisappear() {}
     
-    open func didStartTracking() {}
+    open func didStartTracking() {
+        recursivelySetHighlightedOnSubviews(true)
+    }
     
-    open func didStopTracking() {}
+    open func didStopTracking() {
+        recursivelySetHighlightedOnSubviews(false)
+    }
     
     private func matchWidthToMenuWidth() {
         if let windowWidth = window?.frame.width {
             setFrameSize(NSSize(width: windowWidth, height: bounds.size.height))
         }
     }
-    
-    // MARK: - Layout
-    
-    open override func layout() {
-        let contentRect = NSRect(
-            x: contentInsets.left,
-            y: contentInsets.top,
-            width: bounds.width - contentInsets.left - contentInsets.right,
-            height: bounds.height - contentInsets.top - contentInsets.bottom
-        )
-        contentView.frame = contentRect
-        layoutIn(contentRect: contentRect)
-    }
-    
-    open func layoutIn(contentRect: NSRect) {}
     
     // MARK: - Tracking
     
