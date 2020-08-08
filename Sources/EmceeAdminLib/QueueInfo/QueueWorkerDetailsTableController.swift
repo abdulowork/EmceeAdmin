@@ -1,6 +1,6 @@
 import AppKit
 import EasyAppKit
-import Models
+import QueueModels
 import WorkerAlivenessModels
 
 public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {

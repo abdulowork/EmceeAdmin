@@ -1,15 +1,16 @@
 import Foundation
-import Models
+import QueueModels
 import RemotePortDeterminer
+import SocketModels
 
 public final class FakeRemotePortDeterminer: RemotePortDeterminer {
-    private let result: [Models.Port : Version]
+    private let result: [SocketModels.Port : Version]
     
-    public init(result: [Models.Port : Version]) {
+    public init(result: [SocketModels.Port : Version]) {
         self.result = result
     }
     
-    public func queryPortAndQueueServerVersion(timeout: TimeInterval) -> [Models.Port : Version] {
+    public func queryPortAndQueueServerVersion(timeout: TimeInterval) -> [SocketModels.Port : Version] {
         result
     }
 }

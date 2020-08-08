@@ -1,5 +1,6 @@
 import Foundation
-import Models
+import QueueModels
+import SocketModels
 import WorkerAlivenessModels
 
 public struct StaticQueueMetrics {

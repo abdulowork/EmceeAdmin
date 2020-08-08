@@ -1,6 +1,6 @@
 import Dispatch
 import Foundation
-import Models
+import SocketModels
 
 public protocol QueueMetricsProvider {
     func staticQueueMetrics(

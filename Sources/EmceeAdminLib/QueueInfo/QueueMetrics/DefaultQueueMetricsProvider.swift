@@ -1,8 +1,10 @@
 import Dispatch
 import Foundation
-import Models
 import QueueClient
+import QueueModels
 import RequestSender
+import SocketModels
+import Types
 import WorkerAlivenessModels
 
 public final class DefaultQueueMetricsProvider: QueueMetricsProvider {

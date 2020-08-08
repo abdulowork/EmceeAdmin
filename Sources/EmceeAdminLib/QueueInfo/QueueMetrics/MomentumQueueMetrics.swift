@@ -1,5 +1,5 @@
 import Foundation
-import Models
+import QueueModels
 import WorkerAlivenessModels
 
 public struct MomentumQueueMetrics {

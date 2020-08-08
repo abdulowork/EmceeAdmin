@@ -1,5 +1,6 @@
 import AppKit
 import EasyAppKit
+import QueueModels
 import RequestSender
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {

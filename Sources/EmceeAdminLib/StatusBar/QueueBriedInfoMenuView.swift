@@ -1,7 +1,8 @@
 import AppKit
 import EasyAppKit
-import Models
+import QueueModels
 import SnapKit
+import SocketModels
 
 public final class QueueBriedInfoMenuView: NSView {
     private lazy var stackView: NSStackView = NSStackView(views: [])

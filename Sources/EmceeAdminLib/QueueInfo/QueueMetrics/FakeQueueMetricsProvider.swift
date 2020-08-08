@@ -1,6 +1,7 @@
 import Dispatch
 import Foundation
-import Models
+import QueueModels
+import SocketModels
 import WorkerAlivenessModels
 
 public final class FakeQueueMetricsProvider: QueueMetricsProvider, WorkerStatusSetter {

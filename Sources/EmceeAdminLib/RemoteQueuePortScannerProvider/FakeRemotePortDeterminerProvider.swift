@@ -1,12 +1,13 @@
 import Foundation
-import Models
+import QueueModels
 import RemotePortDeterminer
 import RequestSender
+import SocketModels
 
 public final class FakeRemotePortDeterminerProvider: RemotePortDeterminerProvider {
-    private let result: [Models.Port : Version]
+    private let result: [SocketModels.Port : Version]
     
-    public init(result: [Models.Port : Version]) {
+    public init(result: [SocketModels.Port : Version]) {
         self.result = result
     }
     

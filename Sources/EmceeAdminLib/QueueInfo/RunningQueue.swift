@@ -1,5 +1,6 @@
 import Foundation
-import Models
+import QueueModels
+import SocketModels
 
 public struct RunningQueue: Comparable {
     public static func < (lhs: RunningQueue, rhs: RunningQueue) -> Bool {

@@ -1,6 +1,5 @@
 import AppKit
 import EasyAppKit
-import Models
 
 public final class QueueInfoWindowController: NSWindowController, NSWindowDelegate {
     private let queueInfoViewController: QueueInfoViewController

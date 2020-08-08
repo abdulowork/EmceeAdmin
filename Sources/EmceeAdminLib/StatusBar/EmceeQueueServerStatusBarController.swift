@@ -1,9 +1,10 @@
 import AppKit
 import AtomicModels
 import EasyAppKit
-import Models
+import QueueModels
 import RemotePortDeterminer
 import RequestSender
+import SocketModels
 
 public final class EmceeQueueServerStatusBarController {
     lazy var statusBarController = StatusBarController(
@@ -105,7 +106,7 @@ public final class EmceeQueueServerStatusBarController {
         }
     }
     
-    private func didFindQueues(on host: String, ports: [Models.Port: Version]) {
+    private func didFindQueues(on host: String, ports: [SocketModels.Port: Version]) {
         if !ports.isEmpty {
             runningQueues.withExclusiveAccess {
                 for (port, version) in ports {

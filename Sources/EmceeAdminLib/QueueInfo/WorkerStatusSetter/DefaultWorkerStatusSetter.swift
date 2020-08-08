@@ -1,8 +1,10 @@
 import Dispatch
-import Models
 import QueueClient
+import QueueModels
 import RequestSender
+import SocketModels
 import SynchronousWaiter
+import Types
 
 public final class DefaultWorkerStatusSetter: WorkerStatusSetter {
     private let requestSenderProvider: RequestSenderProvider

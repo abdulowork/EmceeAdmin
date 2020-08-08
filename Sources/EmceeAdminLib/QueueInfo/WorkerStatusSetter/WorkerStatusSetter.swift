@@ -1,5 +1,6 @@
 import Dispatch
-import Models
+import SocketModels
+import QueueModels
 
 public protocol WorkerStatusSetter {
     func enable(
