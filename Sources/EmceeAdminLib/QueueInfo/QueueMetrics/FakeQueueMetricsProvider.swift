@@ -81,4 +81,18 @@ public final class FakeQueueMetricsProvider: QueueMetricsProvider, WorkerStatusS
             completion(nil)
         }
     }
+    
+    public func kickstart(queueServerAddress: SocketAddress, workerId: WorkerId, callbackQueue: DispatchQueue, completion: @escaping (Error?) -> ()) {
+        guard let existingAliveness = workerAlivenesses[workerId] else { return }
+        workerAlivenesses[workerId] = WorkerAliveness(
+            registered: true,
+            bucketIdsBeingProcessed: existingAliveness.bucketIdsBeingProcessed,
+            disabled: existingAliveness.disabled,
+            silent: false
+        )
+        
+        callbackQueue.async {
+            completion(nil)
+        }
+    }
 }

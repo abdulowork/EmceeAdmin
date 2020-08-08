@@ -17,4 +17,11 @@ public protocol WorkerStatusSetter {
         callbackQueue: DispatchQueue,
         completion: @escaping (Error?) -> ()
     )
+    
+    func kickstart(
+        queueServerAddress: SocketAddress,
+        workerId: WorkerId,
+        callbackQueue: DispatchQueue,
+        completion: @escaping (Error?) -> ()
+    )
 }

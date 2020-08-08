@@ -13,6 +13,7 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
     public var onEnableWorkerId: (WorkerId) -> () = { _ in }
     public var onDisableWorkerId: (WorkerId) -> () = { _ in }
     public var toggleEnableness: ((enable: [WorkerId], disable: [WorkerId])) -> () = { _ in }
+    public var kickstartWorkers: ([WorkerId]) -> () = { _ in }
     
     private weak var tableView: NSTableView?
     
@@ -146,12 +147,20 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
             let workerInfos = selectedRows.map { alivenesses[$0] }
             let workerIdsToEnable = workerInfos.filter { !$0.enabled }.map { $0.workerId }
             let workerIdsToDisable = workerInfos.filter { $0.enabled }.map { $0.workerId }
+            let workerIdsToKickstart = workerInfos.filter { $0.workerStatus != .startedAlive }.map { $0.workerId }
             
             menu.addItem(
                 .with(title: "Toggle enableness of \(workerInfos.map { $0.workerId.value }.joined(separator: ", "))", action: { [weak self] in
                     self?.toggleEnableness((enable: workerIdsToEnable, disable: workerIdsToDisable))
                 })
             )
+            if !workerIdsToKickstart.isEmpty {
+                menu.addItem(
+                    .with(title: "Kickstart workers \(workerIdsToKickstart.map { $0.value }.joined(separator: ", "))", action: { [weak self] in
+                        self?.kickstartWorkers(workerIdsToKickstart)
+                    })
+                )
+            }
         } else {
             let workerInfo = alivenesses[clickedRow]
             
@@ -164,12 +173,17 @@ public final class QueueWorkerDetailsTableController: NSObject, NSTableViewDataS
                     .with(title: "Enable \(workerInfo.workerId.value)") { [weak self] in self?.onEnableWorkerId(workerInfo.workerId) }
                 )
             }
+            if workerInfo.workerStatus != .startedAlive {
+                menu.addItem(
+                    .with(title: "Kickstart \(workerInfo.workerId.value)") { [weak self] in self?.kickstartWorkers([workerInfo.workerId]) }
+                )
+            }
         }
     }
 }
 
 private struct ComplexWorkerAliveness {
-    enum WorkerStatus: Int {
+    enum WorkerStatus: Int, Equatable {
         case notStarted
         case startedSilent
         case startedAlive

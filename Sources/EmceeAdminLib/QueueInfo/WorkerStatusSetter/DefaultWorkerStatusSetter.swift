@@ -28,4 +28,11 @@ public final class DefaultWorkerStatusSetter: WorkerStatusSetter {
             completion(response.right)
         }
     }
+    
+    public func kickstart(queueServerAddress: SocketAddress, workerId: WorkerId, callbackQueue: DispatchQueue, completion: @escaping (Error?) -> ()) {
+        let kickstarter = WorkerKickstarterImpl(requestSender: requestSenderProvider.requestSender(socketAddress: queueServerAddress))
+        kickstarter.kickstart(workerId: workerId, callbackQueue: callbackQueue) { (response: Either<WorkerId, Error>) in
+            completion(response.right)
+        }
+    }
 }

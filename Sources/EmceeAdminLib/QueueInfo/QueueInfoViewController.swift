@@ -56,6 +56,19 @@ public final class QueueInfoViewController: NSViewController {
             guard let self = self else { return }
             self.disable(workerId: workerId, callbackQueue: .main, completion: self.fetchValues)
         }
+        queueWorkerDetailsTableController.kickstartWorkers = { [weak self] workerIds in
+            guard let self = self else { return }
+            let queue = DispatchQueue.global(qos: .userInitiated)
+            let group = DispatchGroup()
+            
+            for workerId in workerIds {
+                group.enter()
+                self.kickstart(workerId: workerId, callbackQueue: queue, completion: group.leave)
+            }
+            
+            group.notify(queue: .main) { self.fetchValues() }
+            
+        }
         queueWorkerDetailsTableController.toggleEnableness = { [weak self] (request: (enable: [WorkerId], disable: [WorkerId])) in
             guard let self = self else { return }
             
@@ -100,6 +113,12 @@ public final class QueueInfoViewController: NSViewController {
     
     private func disable(workerId: WorkerId, callbackQueue: DispatchQueue, completion: @escaping () -> ()) {
         workerStatusSetter.disable(queueServerAddress: runningQueue.socketAddress, workerId: workerId, callbackQueue: callbackQueue) { _ in
+            completion()
+        }
+    }
+    
+    private func kickstart(workerId: WorkerId, callbackQueue: DispatchQueue, completion: @escaping () -> ()) {
+        workerStatusSetter.kickstart(queueServerAddress: runningQueue.socketAddress, workerId: workerId, callbackQueue: callbackQueue) { _ in
             completion()
         }
     }
