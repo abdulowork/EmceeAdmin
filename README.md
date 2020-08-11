@@ -7,6 +7,7 @@ Current functionality:
 - Discover running queues addresses and their versions
 - Track worker statuses
 - Enable and disable workers
+- Kickstarting silent or never started workers
 
 ## Building and Running
 
