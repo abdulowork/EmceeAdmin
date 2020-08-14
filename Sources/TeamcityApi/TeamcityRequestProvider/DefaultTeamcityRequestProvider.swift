@@ -1,6 +1,6 @@
 import Foundation
 
-public class TeamcityRequestProvider {
+public class DefaultTeamcityRequestProvider: TeamcityRequestProvider {
     private let restApiEndpoint: URL
     private let session: URLSession
     private let decoder = JSONDecoder()
@@ -15,7 +15,7 @@ public class TeamcityRequestProvider {
     
     struct NoDataError: Error {}
     
-    public func createRequest(path: String, method: String = "GET") -> URLRequest {
+    private func createRequest(path: String, method: String = "GET") -> URLRequest {
         let endpointUrl = restApiEndpoint.appendingPathComponent(path)
         var request = URLRequest(url: endpointUrl)
         request.httpMethod = method

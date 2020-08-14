@@ -55,13 +55,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let teamcityApiEndpoint = userDefaults?.string(forKey: "teamcityApiEndpoint") else { return nil }
         guard let teamcityApiUsername = userDefaults?.string(forKey: "teamcityApiUsername") else { return nil }
         guard let teamcityApiPassword = userDefaults?.string(forKey: "teamcityApiPassword") else { return nil }
-        guard let teamcityPoolIds = try? userDefaults?.castedArray(Int.self, forKey: "teamcityPoolIds") else { return nil }
+        guard (try? userDefaults?.castedArray(Int.self, forKey: "teamcityPoolIds")) != nil else { return nil }
         
         return TeamcityConfig(
             teamcityApiEndpoint: URL(string: teamcityApiEndpoint)!,
             teamcityApiPassword: teamcityApiPassword,
-            teamcityApiUsername: teamcityApiUsername,
-            teamcityPoolIds: teamcityPoolIds
+            teamcityApiUsername: teamcityApiUsername
         )
     }
 }

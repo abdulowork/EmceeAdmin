@@ -8,7 +8,6 @@ public protocol WorkerStatusSetter {
         workerId: WorkerId,
         callbackQueue: DispatchQueue,
         completion: @escaping (Error?) -> ()
-
     )
     
     func disable(
