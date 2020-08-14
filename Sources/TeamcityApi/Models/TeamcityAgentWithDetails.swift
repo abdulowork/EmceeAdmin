@@ -7,4 +7,6 @@ public struct TeamcityAgentWithDetails {
     public let authorized: Bool
     public let enabled: Bool
     public let connected: Bool
+    public let agentPoolId: Int
+    public let agentPoolName: String
 }

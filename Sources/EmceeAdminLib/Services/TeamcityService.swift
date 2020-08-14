@@ -1,0 +1,134 @@
+import AtomicModels
+import Foundation
+import TeamcityApi
+
+public final class TeamcityService: Service {
+    enum StateId: String {
+        case isAuthorized
+        case isEnabled
+        case isConnected
+    }
+    
+    enum ActionId: String {
+        case enableAgent
+        case disableAgent
+    }
+    
+    private let agentPoolIds: [Int]
+    private let teamcityConfig: TeamcityConfig
+    private let callbackQueue = DispatchQueue(label: "TeamcityService.callbackQueue")
+    private var agentsWithDetails = AtomicValue([TeamcityAgentWithDetails]())
+    
+    public init(
+        agentPoolIds: [Int],
+        teamcityConfig: TeamcityConfig
+    ) {
+        self.agentPoolIds = agentPoolIds
+        self.teamcityConfig = teamcityConfig
+    }
+    
+    public var id: String {
+        teamcityConfig.teamcityApiEndpoint.absoluteString
+    }
+    
+    public var name: String {
+        "TeamCity \(teamcityConfig.teamcityApiEndpoint.absoluteString)"
+    }
+    
+    public var serviceWorkers: [ServiceWorker] {
+        agentsWithDetails.currentValue().map {
+            TeamcityAgent(teamcityAgentWithDetails: $0)
+        }
+    }
+    
+    public func updateWorkers() {
+        let provider = DefaultTeamcityRequestProvider(
+            restApiEndpoint: teamcityConfig.teamcityApiEndpoint,
+            session: DefaultTeamcitySessionProvider(teamcityConfig: teamcityConfig).createSession()
+        )
+        
+        let fetchedAgentsWithDetails = AtomicValue([TeamcityAgentWithDetails]())
+        
+        let group = DispatchGroup()
+        
+        for poolId in agentPoolIds {
+            group.enter()
+            
+            provider.fetchAgentPool(poolId: poolId) { (response: Result<TeamcityAgentPool, Error>) in
+                defer { group.leave() }
+                
+                guard let agentPool = try? response.get() else { return }
+                for agentInPool in agentPool.agentsInPool {
+                    group.enter()
+                    provider.fetchAgentDetails(agentId: agentInPool.id) { (response: Result<TeamcityAgentWithDetails, Error>) in
+                        defer { group.leave() }
+                        
+                        guard let agentWithDetails = try? response.get() else { return }
+                        fetchedAgentsWithDetails.withExclusiveAccess { $0.append(agentWithDetails) }
+                    }
+                }
+            }
+        }
+        
+        group.wait()
+        agentsWithDetails.set(fetchedAgentsWithDetails.currentValue())
+    }
+}
+
+final class TeamcityAgent: ServiceWorker {
+    let teamcityAgentWithDetails: TeamcityAgentWithDetails
+    
+    init(
+        teamcityAgentWithDetails: TeamcityAgentWithDetails
+    ) {
+        self.teamcityAgentWithDetails = teamcityAgentWithDetails
+    }
+    
+    var id: String { "\(teamcityAgentWithDetails.id)" }
+    
+    var name: String { teamcityAgentWithDetails.name }
+    
+    var states: [ServiceWorkerState] {
+        [
+            TeamcityAgentState(stateId: .isAuthorized, name: "Authorized", status: "\(teamcityAgentWithDetails.authorized)"),
+            TeamcityAgentState(stateId: .isConnected, name: "Connected", status: "\(teamcityAgentWithDetails.connected)"),
+            TeamcityAgentState(stateId: .isEnabled, name: "Enabled", status: "\(teamcityAgentWithDetails.enabled)"),
+        ]
+    }
+    
+    var actions: [ServiceWorkerAction] {
+        var actions = [TeamcityAgentAction]()
+        if teamcityAgentWithDetails.enabled {
+            actions.append(TeamcityAgentAction(id: .disableAgent, name: "Disable \(teamcityAgentWithDetails.name)"))
+        } else {
+            actions.append(TeamcityAgentAction(id: .enableAgent, name: "Enable \(teamcityAgentWithDetails.name)"))
+        }
+        return actions
+    }
+}
+
+final class TeamcityAgentState: ServiceWorkerState {
+    let id: String
+    let name: String
+    let status: String
+    
+    init(
+        stateId: TeamcityService.StateId,
+        name: String,
+        status: String
+    ) {
+        self.id = stateId.rawValue
+        self.name = name
+        self.status = status
+    }
+}
+
+final class TeamcityAgentAction: ServiceWorkerAction {
+    let id: String
+    let name: String
+    
+    init(id: TeamcityService.ActionId, name: String) {
+        self.id = id.rawValue
+        self.name = name
+    }
+}

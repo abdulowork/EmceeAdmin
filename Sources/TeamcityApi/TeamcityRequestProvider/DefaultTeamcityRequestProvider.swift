@@ -64,7 +64,9 @@ public class DefaultTeamcityRequestProvider: TeamcityRequestProvider {
                     agentDetailsWebUrl: URL(string: try dict.cast(key: "webUrl"))!,
                     authorized: try dict.cast(key: "authorized"),
                     enabled: try dict.cast(key: "enabled"),
-                    connected: try dict.cast(key: "connected")
+                    connected: try dict.cast(key: "connected"),
+                    agentPoolId: try dict.cast(NSDictionary.self, key: "pool").cast(key: "id"),
+                    agentPoolName: try dict.cast(NSDictionary.self, key: "pool").cast(key: "name")
                 )
             }
             completion(result)
