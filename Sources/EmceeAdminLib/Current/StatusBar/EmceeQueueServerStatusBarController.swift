@@ -51,7 +51,7 @@ final class EmceeQueueServerStatusBarController {
                     highlightable: true
                 )
             ) { [weak self] in
-//                self?.showQueueInfo(runningQueue: runningQueue)
+                self?.showServiceInfo(service: service)
             }
         }
 
@@ -74,51 +74,29 @@ final class EmceeQueueServerStatusBarController {
             self.updateUI()
         }
     }
-//
-//    private func didFindQueues(on host: String, ports: [SocketModels.Port: Version]) {
-//        if !ports.isEmpty {
-//            runningQueues.withExclusiveAccess {
-//                for (port, version) in ports {
-//                    let runningQueue = RunningQueue(
-//                        socketAddress: SocketAddress(
-//                            host: host,
-//                            port: port
-//                        ),
-//                        version: version
-//                    )
-//                    if !$0.contains(runningQueue) {
-//                        $0.append(runningQueue)
-//                    }
-//                }
-//            }
-//            updateUI()
-//        }
-//    }
+    
+    private func showServiceInfo(service: Service) {
+        let alreadyExistingWindowControllers: [ServiceInfoWindowController] = windowControllerHolder.typedWindowControllers().filter {
+            $0.service.name == service.name && $0.service.version == service.version && service.socketAddress == service.socketAddress
+        }
+        if let alreadyExistingWindowController = alreadyExistingWindowControllers.first {
+            return alreadyExistingWindowController.showWindow(nil)
+        }
+        
+        let windowController = ServiceInfoWindowController(
+            service: service
+        )
+        let key = windowControllerHolder.hold(windowController: windowController)
+        windowController.showWindow(nil)
+        windowController.window?.center()
+        windowController.onWindowClose = { [windowControllerHolder] in
+            windowControllerHolder.release(windowControllerUnderKey: key)
+        }
+    }
     
     private func updateUI() {
         DispatchQueue.main.async {
             self.statusBarController.updateMenuItems()
         }
     }
-    
-//    private func showQueueInfo(runningQueue: RunningQueue) {
-//        let alreadyExistingWindowControllers: [QueueInfoWindowController] = windowControllerHolder.typedWindowControllers().filter {
-//            $0.runningQueue == runningQueue
-//        }
-//        if let alreadyExistingWindowController = alreadyExistingWindowControllers.first {
-//            return alreadyExistingWindowController.showWindow(nil)
-//        }
-//
-//        let windowController = QueueInfoWindowController(
-//            runningQueue: runningQueue,
-//            queueMetricsProvider: queueMetricsProvider,
-//            workerStatusSetter: workerStatusSetter
-//        )
-//        let key = windowControllerHolder.hold(windowController: windowController)
-//        windowController.showWindow(nil)
-//        windowController.window?.center()
-//        windowController.onWindowClose = { [windowControllerHolder] in
-//            windowControllerHolder.release(windowControllerUnderKey: key)
-//        }
-//    }
 }

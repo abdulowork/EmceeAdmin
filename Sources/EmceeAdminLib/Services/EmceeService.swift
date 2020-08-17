@@ -100,16 +100,16 @@ final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
     
     var states: [ServiceWorkerState] {
         [
-            EmceeWorkerState(id: .isRegistered, name: "Registered", status: "\(workerAliveness.registered)"),
-            EmceeWorkerState(id: .isAlive, name: "Alive", status: "\(workerAliveness.alive)"),
-            EmceeWorkerState(id: .isEnabled, name: "Enabled", status: "\(workerAliveness.enabled)"),
+            EmceeWorkerState(id: .isRegistered, name: "Registered", status: workerAliveness.registered ? "Registered" : "Never Started", isPositive: workerAliveness.registered),
+            EmceeWorkerState(id: .isAlive, name: "Alive", status: workerAliveness.alive ? "Alive" : "Silent", isPositive: workerAliveness.alive),
+            EmceeWorkerState(id: .isEnabled, name: "Enabled", status: workerAliveness.enabled ? "Enabled" : "Disabled", isPositive: workerAliveness.enabled),
         ]
     }
     
     var actions: [ServiceWorkerAction] {
         var actions = [ServiceWorkerAction]()
         
-        if !workerAliveness.registered || !workerAliveness.silent {
+        if !workerAliveness.registered || workerAliveness.silent {
             actions.append(EmceeWorkerAction(id: .kickstartWorker, name: "Kickstart \(workerId.value)"))
         }
         if workerAliveness.enabled {
@@ -128,15 +128,18 @@ final class EmceeWorkerState: ServiceWorkerState, CustomStringConvertible {
     public let id: String
     public let name: String
     public let status: String
+    public let isPositive: Bool
     
     init(
         id: EmceeService.StateId,
         name: String,
-        status: String
+        status: String,
+        isPositive: Bool
     ) {
         self.id = id.rawValue
         self.name = name
         self.status = status
+        self.isPositive = isPositive
     }
     
     var description: String { "<\(id) \(status)>" }

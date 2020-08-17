@@ -108,9 +108,9 @@ final class TeamcityAgent: ServiceWorker, CustomStringConvertible {
     
     var states: [ServiceWorkerState] {
         [
-            TeamcityAgentState(stateId: .isAuthorized, name: "Authorized", status: "\(teamcityAgentWithDetails.authorized)"),
-            TeamcityAgentState(stateId: .isConnected, name: "Connected", status: "\(teamcityAgentWithDetails.connected)"),
-            TeamcityAgentState(stateId: .isEnabled, name: "Enabled", status: "\(teamcityAgentWithDetails.enabled)"),
+            TeamcityAgentState(stateId: .isAuthorized, name: "Authorized", status: teamcityAgentWithDetails.authorized ? "Authrorized" : "Not Authorized", isPositive: teamcityAgentWithDetails.authorized),
+            TeamcityAgentState(stateId: .isConnected, name: "Connected", status: teamcityAgentWithDetails.connected ? "Connected" : "Disconnected", isPositive: teamcityAgentWithDetails.connected),
+            TeamcityAgentState(stateId: .isEnabled, name: "Enabled", status: teamcityAgentWithDetails.enabled ? "Enabled" : "Disabled", isPositive: teamcityAgentWithDetails.enabled),
         ]
     }
     
@@ -131,15 +131,18 @@ final class TeamcityAgentState: ServiceWorkerState, CustomStringConvertible {
     let id: String
     let name: String
     let status: String
+    let isPositive: Bool
     
     init(
         stateId: TeamcityService.StateId,
         name: String,
-        status: String
+        status: String,
+        isPositive: Bool
     ) {
         self.id = stateId.rawValue
         self.name = name
         self.status = status
+        self.isPositive = isPositive
     }
     
     var description: String { "<\(id) \(status)>" }
