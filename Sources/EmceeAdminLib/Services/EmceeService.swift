@@ -3,6 +3,7 @@ import Foundation
 import QueueClient
 import QueueModels
 import RequestSender
+import Services
 import SocketModels
 import Timer
 import Types

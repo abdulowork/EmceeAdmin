@@ -31,6 +31,7 @@ let package = Package(
                 "EmceeCommunications",
                 "EmceeInterfaces",
                 "SnapKit",
+                "Services",
                 "TeamcityApi",
             ]
         ),
@@ -39,6 +40,10 @@ let package = Package(
             dependencies: [
                 "EmceeAdminLib",
             ]
+        ),
+        .target(
+            name: "Services",
+            dependencies: []
         ),
         .target(
             name: "TeamcityApi",

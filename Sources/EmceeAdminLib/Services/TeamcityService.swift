@@ -1,5 +1,6 @@
 import AtomicModels
 import Foundation
+import Services
 import TeamcityApi
 
 public final class TeamcityService: Service, CustomStringConvertible {
