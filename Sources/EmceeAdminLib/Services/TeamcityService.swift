@@ -2,7 +2,7 @@ import AtomicModels
 import Foundation
 import TeamcityApi
 
-public final class TeamcityService: Service {
+public final class TeamcityService: Service, CustomStringConvertible {
     enum StateId: String {
         case isAuthorized
         case isEnabled
@@ -73,9 +73,11 @@ public final class TeamcityService: Service {
         group.wait()
         agentsWithDetails.set(fetchedAgentsWithDetails.currentValue())
     }
+    
+    public var description: String { "<\(type(of: self)) agentPoolIds=\(agentPoolIds) \(serviceWorkers)>" }
 }
 
-final class TeamcityAgent: ServiceWorker {
+final class TeamcityAgent: ServiceWorker, CustomStringConvertible {
     let teamcityAgentWithDetails: TeamcityAgentWithDetails
     
     init(
@@ -105,9 +107,11 @@ final class TeamcityAgent: ServiceWorker {
         }
         return actions
     }
+    
+    var description: String { "<\(type(of: self)) \(id) states=\(states) actions=\(actions)>" }
 }
 
-final class TeamcityAgentState: ServiceWorkerState {
+final class TeamcityAgentState: ServiceWorkerState, CustomStringConvertible {
     let id: String
     let name: String
     let status: String
@@ -121,9 +125,11 @@ final class TeamcityAgentState: ServiceWorkerState {
         self.name = name
         self.status = status
     }
+    
+    var description: String { "<\(id) \(status)>" }
 }
 
-final class TeamcityAgentAction: ServiceWorkerAction {
+final class TeamcityAgentAction: ServiceWorkerAction, CustomStringConvertible {
     let id: String
     let name: String
     
@@ -131,4 +137,6 @@ final class TeamcityAgentAction: ServiceWorkerAction {
         self.id = id.rawValue
         self.name = name
     }
+    
+    var description: String { id }
 }

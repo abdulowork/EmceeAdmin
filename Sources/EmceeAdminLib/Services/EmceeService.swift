@@ -8,7 +8,7 @@ import Timer
 import Types
 import WorkerAlivenessModels
 
-public final class EmceeService: Service {
+public final class EmceeService: Service, CustomStringConvertible {
     enum ActionId: String {
         case kickstartWorker
         case enableWorker
@@ -70,13 +70,15 @@ public final class EmceeService: Service {
         
         group.wait()
     }
+    
+    public var description: String { "<\(type(of: self)) \(queueSocketAddress) \(version.value) \(serviceWorkers)>" }
 }
 
-public final class EmceeServiceWorker: ServiceWorker {
+final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
     private let workerId: WorkerId
     private let workerAliveness: WorkerAliveness
     
-    public init(
+    init(
         workerId: WorkerId,
         workerAliveness: WorkerAliveness
     ) {
@@ -84,10 +86,10 @@ public final class EmceeServiceWorker: ServiceWorker {
         self.workerAliveness = workerAliveness
     }
     
-    public var id: String { workerId.value }
-    public var name: String { workerId.value }
+    var id: String { workerId.value }
+    var name: String { workerId.value }
     
-    public var states: [ServiceWorkerState] {
+    var states: [ServiceWorkerState] {
         [
             EmceeWorkerState(id: .isRegistered, name: "Registered", status: "\(workerAliveness.registered)"),
             EmceeWorkerState(id: .isAlive, name: "Alive", status: "\(workerAliveness.alive)"),
@@ -95,23 +97,25 @@ public final class EmceeServiceWorker: ServiceWorker {
         ]
     }
     
-    public var actions: [ServiceWorkerAction] {
+    var actions: [ServiceWorkerAction] {
         var actions = [ServiceWorkerAction]()
         
         if !workerAliveness.registered || !workerAliveness.silent {
-            actions.append(EmceeWorkerAction(id: .kickstartWorker, name: "Kickstart \(workerId)"))
+            actions.append(EmceeWorkerAction(id: .kickstartWorker, name: "Kickstart \(workerId.value)"))
         }
         if workerAliveness.enabled {
-            actions.append(EmceeWorkerAction(id: .disableWorker, name: "Disable \(workerId)"))
+            actions.append(EmceeWorkerAction(id: .disableWorker, name: "Disable \(workerId.value)"))
         } else {
-            actions.append(EmceeWorkerAction(id: .enableWorker, name: "Enable \(workerId)"))
+            actions.append(EmceeWorkerAction(id: .enableWorker, name: "Enable \(workerId.value)"))
         }
         
         return actions
     }
+    
+    var description: String { "<\(type(of: self)) \(workerId.value) states=\(states) actions=\(actions)>" }
 }
 
-final class EmceeWorkerState: ServiceWorkerState {
+final class EmceeWorkerState: ServiceWorkerState, CustomStringConvertible {
     public let id: String
     public let name: String
     public let status: String
@@ -125,9 +129,11 @@ final class EmceeWorkerState: ServiceWorkerState {
         self.name = name
         self.status = status
     }
+    
+    var description: String { "<\(id) \(status)>" }
 }
 
-final class EmceeWorkerAction: ServiceWorkerAction {
+final class EmceeWorkerAction: ServiceWorkerAction, CustomStringConvertible {
     let id: String
     let name: String
     
@@ -138,4 +144,6 @@ final class EmceeWorkerAction: ServiceWorkerAction {
         self.id = id.rawValue
         self.name = name
     }
+    
+    var description: String { id }
 }

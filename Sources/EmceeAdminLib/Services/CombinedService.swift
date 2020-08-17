@@ -1,7 +1,7 @@
 import Foundation
 import Types
 
-public final class CombinedService: Service {
+public final class CombinedService: Service, CustomStringConvertible {
     private let services: [Service]
     
     init(services: [Service]) {
@@ -31,13 +31,27 @@ public final class CombinedService: Service {
     }
     
     public func updateWorkers() {
+        let queue = DispatchQueue(label: "updateQueue", qos: .default, attributes: .concurrent)
+        
+        let group = DispatchGroup()
+        
         for service in services {
-            service.updateWorkers()
+            group.enter()
+            queue.async {
+                defer {
+                    group.leave()
+                }
+                service.updateWorkers()
+            }
         }
+        
+        group.wait()
     }
+    
+    public var description: String { "<\(id) \(name) \(serviceWorkers)" }
 }
 
-final class CombinedServiceWorker: ServiceWorker {
+final class CombinedServiceWorker: ServiceWorker, CustomStringConvertible {
     let serviceWorkers: [ServiceWorker]
     let name: String
     
@@ -57,4 +71,6 @@ final class CombinedServiceWorker: ServiceWorker {
     var states: [ServiceWorkerState] {
         serviceWorkers.flatMap { $0.states }
     }
+    
+    var description: String { "<\(name) states=\(states) actions=\(actions)" }
 }

@@ -51,26 +51,5 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
     
-    private var teamcityConfig: TeamcityConfig? {
-        guard let teamcityApiEndpoint = userDefaults?.string(forKey: "teamcityApiEndpoint") else { return nil }
-        guard let teamcityApiUsername = userDefaults?.string(forKey: "teamcityApiUsername") else { return nil }
-        guard let teamcityApiPassword = userDefaults?.string(forKey: "teamcityApiPassword") else { return nil }
-        guard (try? userDefaults?.castedArray(Int.self, forKey: "teamcityPoolIds")) != nil else { return nil }
-        
-        return TeamcityConfig(
-            teamcityApiEndpoint: URL(string: teamcityApiEndpoint)!,
-            teamcityApiPassword: teamcityApiPassword,
-            teamcityApiUsername: teamcityApiUsername
-        )
-    }
-}
 
-extension UserDefaults {
-    struct CastError: Error {}
-    func castedArray<T>(_ type: T.Type, forKey key: String) throws -> [T] {
-        return try (array(forKey: key) ?? []).map {
-            guard let obj = $0 as? T else { throw CastError() }
-            return obj
-        }
-    }
 }
