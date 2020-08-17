@@ -1,10 +1,11 @@
 import Foundation
+import SocketModels
 import Types
 
 public final class CombinedService: Service, CustomStringConvertible {
     private let services: [Service]
     
-    init(services: [Service]) {
+    public init(services: [Service]) {
         self.services = services
     }
     
@@ -14,6 +15,14 @@ public final class CombinedService: Service, CustomStringConvertible {
     
     public var name: String {
         "Combined Service: " + services.map { $0.name }.joined(separator: ", ")
+    }
+    
+    public var socketAddress: SocketAddress {
+        SocketAddress(host: "", port: 0)
+    }
+    
+    public var version: String {
+        services.map { $0.version }.joined(separator: ", ")
     }
     
     public var serviceWorkers: [ServiceWorker] {

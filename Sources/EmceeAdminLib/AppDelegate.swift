@@ -5,7 +5,7 @@ import RequestSender
 import TeamcityApi
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {
-    lazy var emceeQueueServerStatusBarController = productionDataBasedEmceeQueueServerStatusBarController()
+    lazy var emceeQueueServerStatusBarController = createStatusBarController()
     lazy var userDefaults = UserDefaults(suiteName: "ru.avito.emceeadmin")
     lazy var windowControllerHolder = WindowControllerHolder()
     
@@ -14,42 +14,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         emceeQueueServerStatusBarController.startUpdating()
     }
     
-    private func productionDataBasedEmceeQueueServerStatusBarController () -> EmceeQueueServerStatusBarController {
-        let requestSenderProvider = DefaultRequestSenderProvider()
+    private func createStatusBarController() -> EmceeQueueServerStatusBarController {
         return EmceeQueueServerStatusBarController(
-            hostsProvider: {
-                self.userDefaults?.stringArray(forKey: "hosts") ?? []
-            },
-            queueMetricsProvider: DefaultQueueMetricsProvider(
-                requestSenderProvider: requestSenderProvider
+            serviceProvider: DefaultServiceProvider(
+                remotePortDeterminerProvider: DefaultRemotePortDeterminerProvider(
+                    requestSenderProvider: DefaultRequestSenderProvider()
+                ),
+                userDefaults: userDefaults!
             ),
-            remotePortDeterminerProvider: DefaultRemotePortDeterminerProvider(
-                requestSenderProvider: requestSenderProvider
-            ),
-            windowControllerHolder: windowControllerHolder,
-            workerStatusSetter: DefaultWorkerStatusSetter(
-                requestSenderProvider: requestSenderProvider
-            )
+            windowControllerHolder: windowControllerHolder
         )
     }
-    
-    private func fakeDataBasedEmceeQueueServerStatusBarController() -> EmceeQueueServerStatusBarController {
-        let metricsProvider = FakeQueueMetricsProvider()
-        
-        return EmceeQueueServerStatusBarController(
-            hostsProvider: {
-                ["example.com"]
-            },
-            queueMetricsProvider: metricsProvider,
-            remotePortDeterminerProvider: FakeRemotePortDeterminerProvider(
-                result: [
-                    41000: "abc2123",
-                ]
-            ),
-            windowControllerHolder: windowControllerHolder,
-            workerStatusSetter: metricsProvider
-        )
-    }
-    
-
 }

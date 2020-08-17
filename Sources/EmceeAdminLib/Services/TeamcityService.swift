@@ -1,6 +1,7 @@
 import AtomicModels
 import Foundation
 import Services
+import SocketModels
 import TeamcityApi
 
 public final class TeamcityService: Service, CustomStringConvertible {
@@ -33,7 +34,21 @@ public final class TeamcityService: Service, CustomStringConvertible {
     }
     
     public var name: String {
-        "TeamCity \(teamcityConfig.teamcityApiEndpoint.absoluteString)"
+        "TeamCity"
+    }
+    
+    public var socketAddress: SocketAddress {
+        let url = teamcityConfig.teamcityApiEndpoint
+        return SocketAddress(
+            host: url.host ?? "unknown",
+            port: SocketModels.Port(
+                value: url.port ?? (url.scheme == "https" ? 443 : 80)
+            )
+        )
+    }
+    
+    public var version: String {
+        "N/A"
     }
     
     public var serviceWorkers: [ServiceWorker] {

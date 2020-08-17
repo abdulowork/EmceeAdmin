@@ -41,10 +41,16 @@ final class DefaultServiceProvider: ServiceProvider {
         
         let discoveredServices = AtomicValue([EmceeService]())
         
+        let group = DispatchGroup()
+        
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 5
         for host in hostsToQuery {
+            group.enter()
             queue.addOperation { [weak self] in
+                defer {
+                    group.leave()
+                }
                 guard let self = self else { return }
                 
                 let remotePortDeterminer = self.remotePortDeterminerProvider.remotePortDeterminer(
@@ -68,6 +74,8 @@ final class DefaultServiceProvider: ServiceProvider {
                 }
             }
         }
+        
+        group.wait()
         
         return discoveredServices.currentValue()
     }

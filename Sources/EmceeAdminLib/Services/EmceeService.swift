@@ -26,22 +26,30 @@ public final class EmceeService: Service, CustomStringConvertible {
     private let callbackQueue = DispatchQueue(label: "EmceeService.callbackQueue")
     private let queueSocketAddress: SocketAddress
     private let updateTimer = DispatchBasedTimer(repeating: .seconds(5), leeway: .seconds(1))
-    private let version: Version
+    private let emceeVersion: Version
     
     public init(
         queueSocketAddress: SocketAddress,
         version: Version
     ) {
         self.queueSocketAddress = queueSocketAddress
-        self.version = version
+        self.emceeVersion = version
     }
     
     public var id: String {
-        queueSocketAddress.asString + version.value
+        queueSocketAddress.asString + emceeVersion.value
     }
     
     public var name: String {
-        "Emcee Qeueue Server \(queueSocketAddress.asString) \(version)"
+        "Emcee Qeueue"
+    }
+    
+    public var socketAddress: SocketAddress {
+        queueSocketAddress
+    }
+    
+    public var version: String {
+        emceeVersion.value
     }
     
     public var serviceWorkers: [ServiceWorker] {
@@ -72,7 +80,7 @@ public final class EmceeService: Service, CustomStringConvertible {
         group.wait()
     }
     
-    public var description: String { "<\(type(of: self)) \(queueSocketAddress) \(version.value) \(serviceWorkers)>" }
+    public var description: String { "<\(type(of: self)) \(queueSocketAddress) \(emceeVersion.value) \(serviceWorkers)>" }
 }
 
 final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
