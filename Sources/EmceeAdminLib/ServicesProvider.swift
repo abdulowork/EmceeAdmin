@@ -26,6 +26,8 @@ final class DefaultServiceProvider: ServiceProvider {
         services.append(contentsOf: discoverRunningTeamcityService())
         services.append(contentsOf: discoverRunningEmceeServices())
         
+        services.sort { (left, right) -> Bool in left.socketAddress.asString < right.socketAddress.asString }
+        
         return services
     }
     
