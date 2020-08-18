@@ -24,6 +24,26 @@ public class DefaultTeamcityRequestProvider: TeamcityRequestProvider {
         return request
     }
     
+    public func fetchServerInfo(completion: @escaping (Result<TeamcityServerInfo, Error>) -> ()) {
+        let request = createRequest(path: "app/rest/server")
+        
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error { return completion(.failure(error)) }
+            guard let data = data else { return completion(.failure(NoDataError())) }
+            
+            let result = Result<TeamcityServerInfo, Error> {
+                let dict = try JSONSerialization.dictionary(data: data)
+                return TeamcityServerInfo(
+                    versionMajor: try dict.cast(key: "versionMajor"),
+                    versionMinor: try dict.cast(key: "versionMinor"),
+                    buildNumber: try dict.cast(key: "buildNumber")
+                )
+            }
+            completion(result)
+        }
+        task.resume()
+    }
+    
     public func fetchAgentPool(poolId: Int, completion: @escaping (Result<TeamcityAgentPool, Error>) -> ()) {
         let request = createRequest(path: "app/rest/agentPools/id:\(poolId)")
         

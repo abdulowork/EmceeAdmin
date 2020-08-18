@@ -2,6 +2,7 @@ import AtomicModels
 import Foundation
 import Services
 import SocketModels
+import TeamcityApi
 
 protocol ServiceProvider {
     func services() -> [Service]
@@ -22,18 +23,46 @@ final class DefaultServiceProvider: ServiceProvider {
     func services() -> [Service] {
         var services = [Service]()
         
-        if let teamcityDefaultsSettings = TeamcityDefaultsSettings.from(userDefaults: userDefaults) {
-            services.append(
-                TeamcityService(
-                    agentPoolIds: teamcityDefaultsSettings.teamcityPoolIds,
-                    teamcityConfig: teamcityDefaultsSettings.teamcityConfig
-                )
-            )
-        }
-        
+        services.append(contentsOf: discoverRunningTeamcityService())
         services.append(contentsOf: discoverRunningEmceeServices())
         
         return services
+    }
+    
+    private func discoverRunningTeamcityService() -> [TeamcityService] {
+        guard let teamcityDefaultsSettings = TeamcityDefaultsSettings.from(userDefaults: userDefaults) else { return [] }
+        
+        let group = DispatchGroup()
+        
+        group.enter()
+        
+        var response: Result<TeamcityServerInfo, Error>? = nil
+        
+        let teamcityRequestProvider = DefaultTeamcityRequestProvider(
+            restApiEndpoint: teamcityDefaultsSettings.teamcityConfig.teamcityApiEndpoint,
+            session: DefaultTeamcitySessionProvider(teamcityConfig: teamcityDefaultsSettings.teamcityConfig).createSession()
+        )
+        teamcityRequestProvider.fetchServerInfo {
+            defer {
+                group.leave()
+            }
+            response = $0
+        }
+        
+        group.wait()
+        
+        do {
+            let info = try response!.get()
+            return [
+                TeamcityService(
+                    agentPoolIds: teamcityDefaultsSettings.teamcityPoolIds,
+                    teamcityConfig: teamcityDefaultsSettings.teamcityConfig,
+                    version: "\(info.versionMajor).\(info.versionMinor)"
+                )
+            ]
+        } catch {
+            return []
+        }
     }
     
     private func discoverRunningEmceeServices() -> [EmceeService] {

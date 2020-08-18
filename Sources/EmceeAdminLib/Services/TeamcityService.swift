@@ -20,13 +20,16 @@ public final class TeamcityService: Service, CustomStringConvertible {
     private let teamcityConfig: TeamcityConfig
     private let callbackQueue = DispatchQueue(label: "TeamcityService.callbackQueue")
     private var agentsWithDetails = AtomicValue([TeamcityAgentWithDetails]())
+    public let version: String
     
     public init(
         agentPoolIds: [Int],
-        teamcityConfig: TeamcityConfig
+        teamcityConfig: TeamcityConfig,
+        version: String
     ) {
         self.agentPoolIds = agentPoolIds
         self.teamcityConfig = teamcityConfig
+        self.version = version
     }
     
     public var name: String {
@@ -41,10 +44,6 @@ public final class TeamcityService: Service, CustomStringConvertible {
                 value: url.port ?? (url.scheme == "https" ? 443 : 80)
             )
         )
-    }
-    
-    public var version: String {
-        "N/A"
     }
     
     public var serviceWorkers: [ServiceWorker] {
