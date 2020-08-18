@@ -4,17 +4,14 @@ import Services
 
 public final class ServiceInfoWindowController: NSWindowController, NSWindowDelegate {
     private let serviceInfoViewController: ServiceInfoViewController
-    public let service: Service
     
     public var onWindowClose: () -> () = {}
     
     public init(
-        service: Service
+        services: [Service]
     ) {
-        self.service = service
-        
         self.serviceInfoViewController = ServiceInfoViewController(
-            service: service
+            services: services
         )
         
         let window = NSWindow.createWindow(

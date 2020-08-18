@@ -11,6 +11,7 @@ final class EmceeQueueServerStatusBarController {
     private let windowControllerHolder: WindowControllerHolder
     private var isSearching = false
     private let discoveredServices = AtomicValue([Service]())
+    private var pickedServices = [Service]()
     
     init(
         serviceProvider: ServiceProvider,
@@ -24,7 +25,11 @@ final class EmceeQueueServerStatusBarController {
         statusBarController.showStatusBarItem()
         statusBarController.menuItems = { [weak self] in self?.menuItems() ?? [] }
         statusBarController.willOpenMenu = { [weak self] in
+            self?.pickedServices = []
             self?.discoverServices()
+        }
+        statusBarController.didCloseMenu = { [weak self] in
+            self?.showServiceInfo()
         }
     }
     
@@ -48,10 +53,12 @@ final class EmceeQueueServerStatusBarController {
                 view: EAKMenuView(
                     actionable: true,
                     contentView: ServiceBriefInfoMenuView(service: service),
-                    highlightable: true
+                    highlightable: true,
+                    selected: false,
+                    multipleSelectionEnabled: true
                 )
             ) { [weak self] in
-                self?.showServiceInfo(service: service)
+                self?.pickedServices.append(service)
             }
         }
 
@@ -75,16 +82,11 @@ final class EmceeQueueServerStatusBarController {
         }
     }
     
-    private func showServiceInfo(service: Service) {
-        let alreadyExistingWindowControllers: [ServiceInfoWindowController] = windowControllerHolder.typedWindowControllers().filter {
-            $0.service.name == service.name && $0.service.version == service.version && service.socketAddress == service.socketAddress
-        }
-        if let alreadyExistingWindowController = alreadyExistingWindowControllers.first {
-            return alreadyExistingWindowController.showWindow(nil)
-        }
-        
+    private func showServiceInfo() {
+        guard !pickedServices.isEmpty else { return }
+
         let windowController = ServiceInfoWindowController(
-            service: service
+            services: pickedServices
         )
         let key = windowControllerHolder.hold(windowController: windowController)
         windowController.showWindow(nil)

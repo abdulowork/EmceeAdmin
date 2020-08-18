@@ -36,6 +36,14 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         item?.menu?.items = menuItems()
     }
     
+    public func closeMenu(animated: Bool) {
+        if animated {
+            currentlyPresentedMenu?.cancelTracking()
+        } else {
+            currentlyPresentedMenu?.cancelTrackingWithoutAnimation()
+        }
+    }
+    
     private func updateItem() {
         guard let item = item else { return }
         item.button?.title = title
@@ -47,11 +55,15 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         item.menu = menu
     }
     
+    private var currentlyPresentedMenu: NSMenu?
+    
     public func menuWillOpen(_ menu: NSMenu) {
+        currentlyPresentedMenu = menu
         willOpenMenu()
     }
     
     public func menuDidClose(_ menu: NSMenu) {
+        currentlyPresentedMenu = nil
         didCloseMenu()
     }
     

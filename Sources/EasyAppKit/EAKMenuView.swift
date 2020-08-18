@@ -31,10 +31,15 @@ open class EAKMenuView: NSView {
         didSet { needsUpdateConstraints = true }
     }
     
-    public init(actionable: Bool, contentView: NSView, highlightable: Bool) {
+    public var multipleSelectionEnabled: Bool
+    public var selected: Bool
+    
+    public init(actionable: Bool, contentView: NSView, highlightable: Bool, selected: Bool, multipleSelectionEnabled: Bool) {
         self.actionable = actionable
         self.contentView = contentView
         self.highlightable = highlightable
+        self.selected = selected
+        self.multipleSelectionEnabled = multipleSelectionEnabled
         
         super.init(frame: .zero)
         
@@ -107,6 +112,7 @@ open class EAKMenuView: NSView {
         set {
             var newValue = newValue
             if !highlightable { newValue = false }
+            if selected { newValue = true }
             
             if __eak_trackingStorage != newValue {
                 __eak_trackingStorage = newValue
@@ -149,10 +155,17 @@ open class EAKMenuView: NSView {
     
     open override func mouseUp(with event: NSEvent) {
         guard actionable && enabled else { return }
-        if (highlightable) {
-            cancelTrackingWithAnimation()
+        
+        selected.toggle()
+        
+        if multipleSelectionEnabled && event.modifierFlags.contains(.shift) {
+            sendAction()
         } else {
-            cancelTrackingWithoutAnimation()
+            if (highlightable) {
+                cancelTrackingWithAnimation()
+            } else {
+                cancelTrackingWithoutAnimation()
+            }
         }
     }
     
@@ -168,9 +181,7 @@ open class EAKMenuView: NSView {
                 menuItem?.menu?.cancelTracking()
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
-                    if let action = menuItem?.action {
-                        NSApp.sendAction(action, to: menuItem?.target, from: menuItem)
-                    }
+                    self.sendAction()
                     
                     self.eak_tracking = false
                     self.eak_cancellingTracking = false
@@ -187,6 +198,12 @@ open class EAKMenuView: NSView {
         menu.cancelTracking()
         if let action = menuItem.action {
             NSApp.sendAction(action, to: menuItem.target, from: menuItem)
+        }
+    }
+    
+    func sendAction() {
+        if let action = enclosingMenuItem?.action {
+            NSApp.sendAction(action, to: enclosingMenuItem?.target, from: enclosingMenuItem)
         }
     }
     

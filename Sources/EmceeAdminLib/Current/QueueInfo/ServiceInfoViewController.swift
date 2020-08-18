@@ -11,13 +11,13 @@ public final class ServiceInfoViewController: NSViewController {
     
     private let autoupdateTimer = DispatchBasedTimer(repeating: .seconds(20), leeway: .seconds(1))
     
-    private let service: Service
+    private let services: [Service]
     private let serviceWorkerDetailsTableController = ServiceWorkerDetailsTableController()
     
     public init(
-        service: Service
+        services: [Service]
     ) {
-        self.service = service
+        self.services = services
         
         super.init(nibName: nil, bundle: nil)
     }
@@ -34,15 +34,15 @@ public final class ServiceInfoViewController: NSViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.title = [service.name, "version: " + service.version].joined(separator: ", ")
+        self.title = services.map { $0.name }.joined(separator: ", ")
         
         stackView.orientation = .vertical
         stackView.snp.makeConstraints { maker in
             maker.top.left.bottom.right.equalToSuperview()
         }
         
-        service.updateWorkers()
-        serviceWorkerDetailsTableController.serviceWorkers = service.serviceWorkers
+        services.forEach { $0.updateWorkers() }
+        serviceWorkerDetailsTableController.services = services
         
         serviceWorkerDetailsTableController.prepare(tableView: tableContainer.tableView)
     }

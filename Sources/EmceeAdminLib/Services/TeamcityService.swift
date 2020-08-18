@@ -29,10 +29,6 @@ public final class TeamcityService: Service, CustomStringConvertible {
         self.teamcityConfig = teamcityConfig
     }
     
-    public var id: String {
-        teamcityConfig.teamcityApiEndpoint.absoluteString
-    }
-    
     public var name: String {
         "TeamCity"
     }

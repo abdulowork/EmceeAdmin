@@ -36,12 +36,8 @@ public final class EmceeService: Service, CustomStringConvertible {
         self.emceeVersion = version
     }
     
-    public var id: String {
-        queueSocketAddress.asString + emceeVersion.value
-    }
-    
     public var name: String {
-        "Emcee Qeueue"
+        "Emcee Queue"
     }
     
     public var socketAddress: SocketAddress {
