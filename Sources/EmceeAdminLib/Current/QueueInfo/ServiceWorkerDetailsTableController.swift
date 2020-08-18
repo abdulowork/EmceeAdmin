@@ -19,6 +19,8 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
             tableView.removeTableColumn(column)
         }
         
+        tableView.allowsMultipleSelection = false
+        
         do {
             let workerIdColumn = NSTableColumn()
             workerIdColumn.identifier = ServiceWorkerDetailsTableController.workerNameColumnId
@@ -26,7 +28,7 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
         }
 
         var addedColumnIds = Set<NSUserInterfaceItemIdentifier>()
-        for serviceWorker in serviceWorkers {
+        for serviceWorker in sortedWorkers {
             for combinedState in serviceWorker.combinedStates {
                 let columnId = NSUserInterfaceItemIdentifier(combinedState.id)
                 guard !addedColumnIds.contains(columnId) else { continue }
@@ -75,7 +77,7 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
         }
     }
     
-    private lazy var serviceWorkers: [SharedWorker] = {
+    private func createServiceWorkerList() -> [SharedWorker] {
         var similarlyNamedServiceWorkers = MapWithCollection<String, (service: Service, worker: ServiceWorker)>()
         for service in services {
             for worker in service.serviceWorkers {
@@ -86,9 +88,11 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
         return similarlyNamedServiceWorkers.asDictionary.map { (name: String, serviceWorkers: [(service: Service, worker: ServiceWorker)]) -> SharedWorker in
             SharedWorker(commonName: name, serviceWorkers: serviceWorkers)
         }
-    }()
-    
+    }
+        
     private func createSortedWorkerList() -> [SharedWorker] {
+        let serviceWorkers = createServiceWorkerList()
+        
         if sortingColumnId == ServiceWorkerDetailsTableController.workerNameColumnId {
             return serviceWorkers.sorted { (left, right) -> Bool in left.commonName < right.commonName }
         }
@@ -108,7 +112,7 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
     private lazy var sortedWorkers: [SharedWorker] = createSortedWorkerList()
     
     public func numberOfRows(in tableView: NSTableView) -> Int {
-        serviceWorkers.count
+        sortedWorkers.count
     }
     
     public func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
@@ -167,7 +171,11 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
         
         for combinedAction in clickedWorker.combinedActions {
             menu.addItem(
-                NSMenuItem.with(title: "\(combinedAction.service.name): \(combinedAction.action.name)")
+                NSMenuItem.with(title: "\(combinedAction.service.name): \(combinedAction.action.name)") {
+                    combinedAction.service.execute(action: combinedAction.action, serviceWorker: combinedAction.serviceWorker)
+                    combinedAction.service.updateWorkers()
+                    self.updateTableViewSorting()
+                }
             )
         }
     }

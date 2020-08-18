@@ -8,4 +8,6 @@ public protocol Service {
     
     var serviceWorkers: [ServiceWorker] { get }
     func updateWorkers()
+    
+    func execute(action: ServiceWorkerAction, serviceWorker: ServiceWorker)
 }

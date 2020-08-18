@@ -86,6 +86,10 @@ public final class TeamcityService: Service, CustomStringConvertible {
     }
     
     public var description: String { "<\(type(of: self)) agentPoolIds=\(agentPoolIds) \(serviceWorkers)>" }
+    
+    public func execute(action: ServiceWorkerAction, serviceWorker: ServiceWorker) {
+        
+    }
 }
 
 final class TeamcityAgent: ServiceWorker, CustomStringConvertible {

@@ -77,11 +77,32 @@ public final class EmceeService: Service, CustomStringConvertible {
     }
     
     public var description: String { "<\(type(of: self)) \(queueSocketAddress) \(emceeVersion.value) \(serviceWorkers)>" }
+    
+    public func execute(action: ServiceWorkerAction, serviceWorker: ServiceWorker) {
+        guard let serviceWorker = serviceWorker as? EmceeServiceWorker else { return }
+        guard let action = action as? EmceeWorkerAction else { return }
+        
+        let requestSenderProvider = DefaultRequestSenderProvider()
+        let requestSender = requestSenderProvider.requestSender(socketAddress: queueSocketAddress)
+        
+        let group = DispatchGroup()
+        
+        group.enter()
+        switch action.actionId {
+        case .disableWorker:
+            WorkerDisablerImpl(requestSender: requestSender).disableWorker(workerId: serviceWorker.workerId, callbackQueue: .global(), completion: { _ in group.leave() })
+        case .enableWorker:
+            WorkerEnablerImpl(requestSender: requestSender).enableWorker(workerId: serviceWorker.workerId, callbackQueue: .global(), completion: { _ in group.leave() })
+        case .kickstartWorker:
+            WorkerKickstarterImpl(requestSender: requestSender).kickstart(workerId: serviceWorker.workerId, callbackQueue: .global(), completion: { _ in group.leave() })
+        }
+        group.wait()
+    }
 }
 
 final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
-    private let workerId: WorkerId
-    private let workerAliveness: WorkerAliveness
+    let workerId: WorkerId
+    let workerAliveness: WorkerAliveness
     
     init(
         workerId: WorkerId,
@@ -106,12 +127,12 @@ final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
         var actions = [ServiceWorkerAction]()
         
         if !workerAliveness.registered || workerAliveness.silent {
-            actions.append(EmceeWorkerAction(id: .kickstartWorker, name: "Kickstart \(workerId.value)"))
+            actions.append(EmceeWorkerAction(actionId: .kickstartWorker, name: "Kickstart \(workerId.value)", workerId: workerId))
         }
         if workerAliveness.enabled {
-            actions.append(EmceeWorkerAction(id: .disableWorker, name: "Disable \(workerId.value)"))
+            actions.append(EmceeWorkerAction(actionId: .disableWorker, name: "Disable \(workerId.value)", workerId: workerId))
         } else {
-            actions.append(EmceeWorkerAction(id: .enableWorker, name: "Enable \(workerId.value)"))
+            actions.append(EmceeWorkerAction(actionId: .enableWorker, name: "Enable \(workerId.value)", workerId: workerId))
         }
         
         return actions
@@ -142,16 +163,20 @@ final class EmceeWorkerState: ServiceWorkerState, CustomStringConvertible {
 }
 
 final class EmceeWorkerAction: ServiceWorkerAction, CustomStringConvertible {
-    let id: String
+    let actionId: EmceeService.ActionId
     let name: String
+    let workerId: WorkerId
     
     init(
-        id: EmceeService.ActionId,
-        name: String
+        actionId: EmceeService.ActionId,
+        name: String,
+        workerId: WorkerId
     ) {
-        self.id = id.rawValue
+        self.actionId = actionId
         self.name = name
+        self.workerId = workerId
     }
     
+    var id: String { actionId.rawValue }
     var description: String { id }
 }
