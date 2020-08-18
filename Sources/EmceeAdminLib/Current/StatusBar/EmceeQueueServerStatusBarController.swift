@@ -22,14 +22,28 @@ final class EmceeQueueServerStatusBarController {
     }
     
     func startUpdating() {
+        let modifierKeysTracker = ModifierKeysTracker()
+        
         statusBarController.showStatusBarItem()
         statusBarController.menuItems = { [weak self] in self?.menuItems() ?? [] }
         statusBarController.willOpenMenu = { [weak self] in
             self?.pickedServices = []
             self?.discoverServices()
+            
+            modifierKeysTracker.subscribe { [weak self] flags in
+                guard let self = self else { return true }
+                
+                if !self.pickedServices.isEmpty && !flags.contains(.shift) {
+                    self.statusBarController.closeMenu(animated: true)
+                }
+                
+                return !self.statusBarController.isMenuOpen
+            }
+            modifierKeysTracker.track()
         }
         statusBarController.didCloseMenu = { [weak self] in
             self?.showServiceInfo()
+            modifierKeysTracker.stopTracking()
         }
     }
     
@@ -58,7 +72,11 @@ final class EmceeQueueServerStatusBarController {
                     multipleSelectionEnabled: true
                 )
             ) { [weak self] in
-                self?.pickedServices.append(service)
+                guard let self = self else { return }
+                self.pickedServices.append(service)
+                if !self.statusBarController.isMenuOpen {
+                    self.showServiceInfo()
+                }
             }
         }
 

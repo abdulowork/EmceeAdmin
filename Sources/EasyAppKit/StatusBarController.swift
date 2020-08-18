@@ -42,7 +42,10 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         } else {
             currentlyPresentedMenu?.cancelTrackingWithoutAnimation()
         }
+        currentlyPresentedMenu = nil
     }
+    
+    public var isMenuOpen: Bool { currentlyPresentedMenu != nil }
     
     private func updateItem() {
         guard let item = item else { return }
