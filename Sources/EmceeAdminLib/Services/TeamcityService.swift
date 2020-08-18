@@ -21,15 +21,18 @@ public final class TeamcityService: Service, CustomStringConvertible {
     private let callbackQueue = DispatchQueue(label: "TeamcityService.callbackQueue")
     private var agentsWithDetails = AtomicValue([TeamcityAgentWithDetails]())
     public let version: String
+    private let teamcityRequestProvider: TeamcityRequestProvider
     
     public init(
         agentPoolIds: [Int],
         teamcityConfig: TeamcityConfig,
-        version: String
+        version: String,
+        teamcityRequestProvider: TeamcityRequestProvider
     ) {
         self.agentPoolIds = agentPoolIds
         self.teamcityConfig = teamcityConfig
         self.version = version
+        self.teamcityRequestProvider = teamcityRequestProvider
     }
     
     public var name: String {
@@ -88,7 +91,24 @@ public final class TeamcityService: Service, CustomStringConvertible {
     public var description: String { "<\(type(of: self)) agentPoolIds=\(agentPoolIds) \(serviceWorkers)>" }
     
     public func execute(action: ServiceWorkerAction, serviceWorker: ServiceWorker) {
+        guard let serviceWorker = serviceWorker as? TeamcityAgent else { return }
+        guard let action = action as? TeamcityAgentAction else { return }
+
+        let group = DispatchGroup()
+        group.enter()
         
+        switch action.actionId {
+        case .disableAgent:
+            teamcityRequestProvider.disableAgent(agentId: serviceWorker.teamcityAgentWithDetails.id) { error in
+                group.leave()
+            }
+        case .enableAgent:
+            teamcityRequestProvider.enableAgent(agentId: serviceWorker.teamcityAgentWithDetails.id) { error in
+                group.leave()
+            }
+        }
+        
+        group.wait()
     }
 }
 
@@ -116,9 +136,9 @@ final class TeamcityAgent: ServiceWorker, CustomStringConvertible {
     var actions: [ServiceWorkerAction] {
         var actions = [TeamcityAgentAction]()
         if teamcityAgentWithDetails.enabled {
-            actions.append(TeamcityAgentAction(id: .disableAgent, name: "Disable \(teamcityAgentWithDetails.name)"))
+            actions.append(TeamcityAgentAction(actionId: .disableAgent, name: "Disable \(teamcityAgentWithDetails.name)"))
         } else {
-            actions.append(TeamcityAgentAction(id: .enableAgent, name: "Enable \(teamcityAgentWithDetails.name)"))
+            actions.append(TeamcityAgentAction(actionId: .enableAgent, name: "Enable \(teamcityAgentWithDetails.name)"))
         }
         return actions
     }
@@ -148,13 +168,15 @@ final class TeamcityAgentState: ServiceWorkerState, CustomStringConvertible {
 }
 
 final class TeamcityAgentAction: ServiceWorkerAction, CustomStringConvertible {
-    let id: String
+    let actionId: TeamcityService.ActionId
     let name: String
     
-    init(id: TeamcityService.ActionId, name: String) {
-        self.id = id.rawValue
+    init(actionId: TeamcityService.ActionId, name: String) {
+        self.actionId = actionId
         self.name = name
     }
+    
+    var id: String { actionId.rawValue }
     
     var description: String { id }
 }

@@ -9,7 +9,14 @@ public class DefaultTeamcitySessionProvider: NSObject, TeamcitySessionProvider, 
     }
     
     public func createSession() -> URLSession {
-        return URLSession(configuration: .ephemeral, delegate: self, delegateQueue: delegateQueue)
+        let configuration = URLSessionConfiguration.ephemeral
+        
+        let cookieStorage = HTTPCookieStorage()
+        cookieStorage.cookieAcceptPolicy = .never
+        
+        configuration.httpCookieStorage = cookieStorage
+        
+        return URLSession(configuration: configuration, delegate: self, delegateQueue: delegateQueue)
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {

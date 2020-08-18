@@ -19,8 +19,6 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
             tableView.removeTableColumn(column)
         }
         
-        tableView.allowsMultipleSelection = false
-        
         do {
             let workerIdColumn = NSTableColumn()
             workerIdColumn.identifier = ServiceWorkerDetailsTableController.workerNameColumnId
@@ -48,7 +46,7 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = 40
-        tableView.allowsMultipleSelection = true
+        tableView.allowsMultipleSelection = false
         
         self.tableView = tableView
         

@@ -57,7 +57,8 @@ final class DefaultServiceProvider: ServiceProvider {
                 TeamcityService(
                     agentPoolIds: teamcityDefaultsSettings.teamcityPoolIds,
                     teamcityConfig: teamcityDefaultsSettings.teamcityConfig,
-                    version: "\(info.versionMajor).\(info.versionMinor)"
+                    version: "\(info.versionMajor).\(info.versionMinor)",
+                    teamcityRequestProvider: teamcityRequestProvider
                 )
             ]
         } catch {

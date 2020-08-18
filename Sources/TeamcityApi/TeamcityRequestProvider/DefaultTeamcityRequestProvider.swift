@@ -3,6 +3,7 @@ import Foundation
 public class DefaultTeamcityRequestProvider: TeamcityRequestProvider {
     private let restApiEndpoint: URL
     private let session: URLSession
+    private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
     public init(
@@ -90,6 +91,44 @@ public class DefaultTeamcityRequestProvider: TeamcityRequestProvider {
                 )
             }
             completion(result)
+        }
+        task.resume()
+    }
+    
+    struct AgentEnableDisablePayload: Encodable {
+        let status: Bool
+        let comment: [String: String] // "text": "<text>"
+        
+        init(status: Bool, text: String) {
+            self.status = status
+            self.comment = ["text": text]
+        }
+    }
+    
+    public func disableAgent(agentId: Int, completion: @escaping (Error?) -> ()) {
+        var request = createRequest(path: "app/rest/agents/id:\(agentId)/enabledInfo", method: "PUT")
+        do {
+            request.httpBody = try encoder.encode(AgentEnableDisablePayload(status: false, text: "Disabled from EmceeAdmin"))
+        } catch {
+            completion(error)
+        }
+        
+        let task = session.dataTask(with: request) { data, response, error in
+            completion(error)
+        }
+        task.resume()
+    }
+    
+    public func enableAgent(agentId: Int, completion: @escaping (Error?) -> ()) {
+        var request = createRequest(path: "app/rest/agents/id:\(agentId)/enabledInfo", method: "PUT")
+        do {
+            request.httpBody = try encoder.encode(AgentEnableDisablePayload(status: true, text: "Enabled from EmceeAdmin"))
+        } catch {
+            completion(error)
+        }
+        
+        let task = session.dataTask(with: request) { data, response, error in
+            completion(error)
         }
         task.resume()
     }
