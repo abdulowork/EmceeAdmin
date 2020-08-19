@@ -8,6 +8,8 @@ Current functionality:
 - Track worker statuses
 - Enable and disable workers
 - Kickstarting silent or never started workers
+- Basic TeamCity agent manipulation
+- Combining Emcee workers and TeamCity agents in a single list
 
 ## Building and Running
 
@@ -17,12 +19,27 @@ $ make app
 
 Finder will present you a folder containing `EmceeAdmin.app`. You can launch it from there or move to `/Applications` folder to launch any time e.g. using **Spotlight**.
 
-## Adding Hosts to Query
+## Configuration
 
-There is no Preferences window yet. Invoke this to add hosts:
+Currently any configuration is done via CLI.
+
+### Emcee
+
+To add hosts with Emcee queues:
 
 ```shell
 $ defaults write ru.avito.emceeadmin "hosts" '(host1.com, host2.com)'
+```
+
+### TeamCity
+
+To support TeamCity you need to specify URL, username, password, and a list of agent pool ids:
+
+```shell
+$ defaults write ru.avito.emceeadmin "teamcityApiEndpoint" 'https://teamcity.example.com'
+$ defaults write ru.avito.emceeadmin "teamcityApiUsername" '<rest api username>'
+$ defaults write ru.avito.emceeadmin "teamcityApiPassword" '<rest api password>'
+$ defaults write ru.avito.emceeadmin "teamcityPoolIds" -array -int <agent pool id> [-int <agent pool id>...]
 ```
 
 ## Screenshots
