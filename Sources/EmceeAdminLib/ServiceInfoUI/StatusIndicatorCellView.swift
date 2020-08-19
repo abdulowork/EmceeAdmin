@@ -11,6 +11,12 @@ public final class StatusIndicatorCellView: NSView {
         set { indicatorView.color = newValue }
     }
     
+    public var backgroundColor: NSColor {
+        didSet {
+            needsDisplay = true
+        }
+    }
+    
     public var indicatorSize: CGFloat = 5.0 {
         didSet { needsUpdateConstraints = true }
     }
@@ -25,13 +31,23 @@ public final class StatusIndicatorCellView: NSView {
     
     private let indicatorToLabelOffset = 5
     
-    public init(color: NSColor, text: String) {
+    public init(backgroundColor: NSColor, indicatorColor: NSColor, text: String) {
+        self.backgroundColor = backgroundColor
         super.init(frame: .zero)
         
+        wantsLayer = true
         addSubview(indicatorView)
-        indicatorView.color = color
+        indicatorView.color = indicatorColor
         addSubview(labelView)
         labelView.ext_setText(text)
+    }
+    
+    public override var wantsUpdateLayer: Bool { true }
+    
+    public override func updateLayer() {
+        super.updateLayer()
+        
+        self.layer?.backgroundColor = backgroundColor.cgColor
     }
     
     public override func updateConstraints() {

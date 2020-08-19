@@ -125,7 +125,11 @@ public final class ServiceWorkerDetailsTableController: NSObject, NSTableViewDat
                 return NSView()
             }
             
-            return StatusIndicatorCellView(color: combinedState.state.isPositive ? greenColor : redColor, text: combinedState.state.status)
+            return StatusIndicatorCellView(
+                backgroundColor: combinedState.service.color.withAlphaComponent(0.15),
+                indicatorColor: combinedState.state.isPositive ? greenColor : redColor,
+                text: combinedState.state.status
+            )
         }
     }
     
