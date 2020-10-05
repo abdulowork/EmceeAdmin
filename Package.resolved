@@ -32,8 +32,8 @@
         "package": "EmceeTestRunner",
         "repositoryURL": "https://github.com/avito-tech/Emcee.git",
         "state": {
-          "branch": "master",
-          "revision": "9308138e692952a2b092ea989ee06e17e2370ab4",
+          "branch": "v11.0.0",
+          "revision": "cebbcef73857340d8b1156386afdeb4ddb1dde94",
           "version": null
         }
       },

@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 
 import PackageDescription
 
@@ -14,7 +14,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/avito-tech/Emcee.git", .branch("master")),
+        .package(name: "EmceeTestRunner", url: "https://github.com/avito-tech/Emcee.git", .branch("v11.0.0")),
         .package(url: "https://github.com/SnapKit/SnapKit", .exact("5.0.1")),
     ],
     targets: [
@@ -28,10 +28,10 @@ let package = Package(
             name: "EmceeAdminLib",
             dependencies: [
                 "EasyAppKit",
-                "EmceeCommunications",
-                "EmceeInterfaces",
-                "SnapKit",
+                .product(name: "EmceeCommunications", package: "EmceeTestRunner"),
+                .product(name: "EmceeInterfaces", package: "EmceeTestRunner"),
                 "Services",
+                "SnapKit",
                 "TeamcityApi",
             ]
         ),
@@ -43,7 +43,9 @@ let package = Package(
         ),
         .target(
             name: "Services",
-            dependencies: []
+            dependencies: [
+                .product(name: "EmceeInterfaces", package: "EmceeTestRunner"),
+            ]
         ),
         .target(
             name: "TeamcityApi",

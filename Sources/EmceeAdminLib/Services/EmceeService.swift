@@ -118,8 +118,8 @@ final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
     var states: [ServiceWorkerState] {
         [
             EmceeWorkerState(id: .isRegistered, name: "Registered", status: workerAliveness.registered ? "Registered" : "Never Started", isPositive: workerAliveness.registered),
-            EmceeWorkerState(id: .isAlive, name: "Alive", status: workerAliveness.alive ? "Alive" : "Silent", isPositive: workerAliveness.alive),
-            EmceeWorkerState(id: .isEnabled, name: "Enabled", status: workerAliveness.enabled ? "Enabled" : "Disabled", isPositive: workerAliveness.enabled),
+            EmceeWorkerState(id: .isAlive, name: "Alive", status: !workerAliveness.silent ? "Alive" : "Silent", isPositive: !workerAliveness.silent),
+            EmceeWorkerState(id: .isEnabled, name: "Enabled", status: !workerAliveness.disabled ? "Enabled" : "Disabled", isPositive: !workerAliveness.disabled),
         ]
     }
     
@@ -129,7 +129,7 @@ final class EmceeServiceWorker: ServiceWorker, CustomStringConvertible {
         if !workerAliveness.registered || workerAliveness.silent {
             actions.append(EmceeWorkerAction(actionId: .kickstartWorker, name: "Kickstart \(workerId.value)", workerId: workerId))
         }
-        if workerAliveness.enabled {
+        if !workerAliveness.disabled {
             actions.append(EmceeWorkerAction(actionId: .disableWorker, name: "Disable \(workerId.value)", workerId: workerId))
         } else {
             actions.append(EmceeWorkerAction(actionId: .enableWorker, name: "Enable \(workerId.value)", workerId: workerId))
